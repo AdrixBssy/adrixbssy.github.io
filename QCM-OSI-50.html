@@ -2,7 +2,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>QCM OSI & TCP/IP — 50 aléatoires </title>
+  <title>QCM OSI & TCP/IP — 50 aléatoires</title>
 
   <style>
     body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:0;background:#0b1020;color:#e8ecff}
@@ -65,6 +65,26 @@
     .explain{color:#cfd6ff;font-size:13px;margin-top:8px;opacity:.95}
     .small{font-size:13px;color:#b9c2ff}
 
+    /* --- Après correction : rendre visible le choix de l'utilisateur --- */
+    label.choice.selected {
+      border-color: rgba(255,255,255,.35);
+      outline: 2px solid rgba(255,255,255,.15);
+      background: rgba(255,255,255,.06);
+    }
+    label.choice.selected.correct {
+      outline: 2px solid rgba(0,255,150,.35);
+      border-color: rgba(0,255,150,.35);
+    }
+    label.choice.selected.wrong {
+      outline: 2px solid rgba(255,80,80,.40);
+      border-color: rgba(255,80,80,.40);
+    }
+    /* (Optionnel) Montrer aussi la bonne réponse même si non choisie */
+    label.choice.correct-answer {
+      border-color: rgba(0,255,150,.25);
+      background: rgba(0,255,150,.06);
+    }
+
     /* --- Mobile: panneau en haut (non fixe) --- */
     @media (max-width: 900px){
       #acronymBox{
@@ -81,7 +101,7 @@
 <body>
 <header>
   <div class="row">
-    <h1>QCM OSI & TCP/IP — 50 aléatoires </h1>
+    <h1>QCM OSI & TCP/IP — 50 aléatoires</h1>
   </div>
   <div class="row meta">
     <span class="pill" id="pillBank">Banque: …</span>
@@ -293,20 +313,20 @@ const DEVICES = [
 const FACTS_TF = [
   ["TCP est orienté connexion", "Vrai", "TCP établit une connexion logique avant l’échange de données."],
   ["UDP est orienté connexion", "Faux", "UDP est sans connexion (connectionless)."],
-  ["Le handshake TCP standard est en 3 temps (SYN, SYN-ACK, ACK)", "Vrai", "C’est le 3-way handshake."],
-  ["IPv4 utilise des adresses sur 32 bits", "Vrai", "32 bits → ~4,29 milliards d’adresses."],
-  ["IPv6 utilise des adresses sur 128 bits", "Vrai", "128 bits → espace d’adressage beaucoup plus grand."],
-  ["Le TTL limite la durée de vie d’un paquet", "Vrai", "Il diminue à chaque routeur jusqu’à 0."],
-  ["ICMP sert notamment aux messages d’erreur et au diagnostic (ping)", "Vrai", "ICMP transporte des messages de contrôle/erreur."],
-  ["DNS sert à résoudre des noms de domaine en adresses IP", "Vrai", "Résolution de noms."],
-  ["DHCP attribue automatiquement une configuration IP", "Vrai", "IP/masque/passerelle/DNS, etc."],
-  ["NAT permet souvent de partager une adresse IPv4 publique", "Vrai", "Traduction d’adresses privées vers publique."],
-  ["Une trame Ethernet contient des adresses MAC source et destination", "Vrai", "MAC au niveau L2."],
-  ["Un routeur choisit le chemin à la couche Réseau", "Vrai", "Décision de routage en OSI 3."],
-  ["Un switch opère principalement à la couche Transport", "Faux", "Un switch classique opère surtout en OSI 2."],
-  ["TLS chiffre les échanges applicatifs", "Vrai", "TLS apporte chiffrement + intégrité + authentification (selon config)."],
-  ["MTU signifie Maximum Transmission Unit", "Vrai", "Taille maximale de paquet (souvent au niveau lien)."],
-  ["CIDR remplace les classes A/B/C par des préfixes /n", "Vrai", "Notation /24, /16, etc."],
+  ["Le handshake TCP standard est en 3 temps (SYN, SYN-ACK, ACK)", "Vrai", "Le 3-way handshake démarre la connexion : SYN → SYN-ACK → ACK."],
+  ["IPv4 utilise des adresses sur 32 bits", "Vrai", "IPv4 = 32 bits, ce qui donne environ 4,29 milliards d’adresses théoriques."],
+  ["IPv6 utilise des adresses sur 128 bits", "Vrai", "IPv6 = 128 bits, donc un espace d’adressage immense (bien plus grand qu’IPv4)."],
+  ["Le TTL limite la durée de vie d’un paquet", "Vrai", "Le TTL diminue à chaque routeur. À 0, le paquet est détruit (évite les boucles)."],
+  ["ICMP sert notamment aux messages d’erreur et au diagnostic (ping)", "Vrai", "ICMP sert à transporter des messages de contrôle (ex: ping / erreur de routage)."],
+  ["DNS sert à résoudre des noms de domaine en adresses IP", "Vrai", "DNS fait le lien entre nom (ex: exemple.com) et IP."],
+  ["DHCP attribue automatiquement une configuration IP", "Vrai", "DHCP peut fournir IP + masque + passerelle + DNS automatiquement."],
+  ["NAT permet souvent de partager une adresse IPv4 publique", "Vrai", "NAT traduit des IP privées en une IP publique (souvent dans une box/routeur)."],
+  ["Une trame Ethernet contient des adresses MAC source et destination", "Vrai", "En Ethernet (L2), on utilise des adresses MAC pour livrer la trame sur le LAN."],
+  ["Un routeur choisit le chemin à la couche Réseau", "Vrai", "Le routeur travaille en L3 (IP) et décide vers quel réseau envoyer les paquets."],
+  ["Un switch opère principalement à la couche Transport", "Faux", "Un switch classique est surtout L2 : il commute grâce aux adresses MAC."],
+  ["TLS chiffre les échanges applicatifs", "Vrai", "TLS apporte chiffrement + intégrité + parfois authentification (certificat)."],
+  ["MTU signifie Maximum Transmission Unit", "Vrai", "MTU = taille maximale d’un paquet sur un lien (ex: 1500 en Ethernet)."],
+  ["CIDR remplace les classes A/B/C par des préfixes /n", "Vrai", "CIDR utilise /24, /16, etc. au lieu des anciennes classes fixes."],
 ];
 
 const IPV4_PRIVATE = [
@@ -384,22 +404,25 @@ function addQ(text, correct, wrongs, explain) {
 }
 
 function buildBank() {
-  addQ("Combien de couches comporte le modèle OSI ?", "7", ["4","5","8"], "Le modèle OSI comporte 7 couches.");
-  addQ("Combien de couches comporte le modèle TCP/IP (version 4 couches) ?", "4", ["3","5","7"], "Le modèle TCP/IP est souvent présenté en 4 couches.");
+  addQ("Combien de couches comporte le modèle OSI ?", "7", ["4","5","8"],
+       "Le modèle OSI est une référence en réseau : il contient 7 couches (de 1 Physique à 7 Application).");
+
+  addQ("Combien de couches comporte le modèle TCP/IP ?", "4", ["3","5","7"],
+       "Dans beaucoup de cours, TCP/IP est présenté en 4 couches : Accès réseau, Internet, Transport, Application.");
 
   for (const l of OSI) {
     addQ(`Dans le modèle OSI, quelle est la couche ${l.layer} ?`, l.name,
       shuffle(OSI.filter(x=>x.layer!==l.layer).map(x=>x.name)).slice(0,3),
-      `La couche ${l.layer} OSI s'appelle ${l.name}.`
+      `Le modèle OSI a 7 couches. La couche ${l.layer} s'appelle "${l.name}".`
     );
     addQ(`Quel est le PDU typique de la couche OSI ${l.layer} (${l.name}) ?`, l.pdu,
       shuffle(["Bits","Trame","Paquet","Segment (TCP) / Datagramme (UDP)"].filter(x=>x!==l.pdu)).slice(0,3),
-      `PDU typique : ${l.name} → ${l.pdu}.`
+      `Un PDU est le “nom des données” à une couche donnée. Pour "${l.name}", on parle surtout de : ${l.pdu}.`
     );
     for (const ex of l.examples.slice(0,2)) {
       addQ(`À quelle couche OSI associe-t-on le plus souvent ${ex} ?`, l.name,
         shuffle(OSI.filter(x=>x.layer!==l.layer).map(x=>x.name)).slice(0,3),
-        `${ex} est souvent rattaché à la couche ${l.name} (selon les cours).`
+        `${ex} est généralement associé à la couche "${l.name}" dans les cours OSI (ça peut varier selon les sources).`
       );
     }
   }
@@ -407,16 +430,16 @@ function buildBank() {
   for (const l of TCPIP) {
     addQ(`Dans le modèle TCP/IP (4 couches), quelle est la couche ${l.layer} ?`, l.name,
       shuffle(TCPIP.filter(x=>x.layer!==l.layer).map(x=>x.name)).slice(0,3),
-      `TCP/IP couche ${l.layer} : ${l.name}.`
+      `En TCP/IP (version 4 couches), la couche ${l.layer} s'appelle "${l.name}".`
     );
     addQ(`La couche TCP/IP ${l.name} correspond à quelles couches OSI ?`, l.mapsOSI,
       shuffle(TCPIP.filter(x=>x.name!==l.name).map(x=>x.mapsOSI)).slice(0,3),
-      `Correspondance classique : ${l.name} ↔ OSI ${l.mapsOSI}.`
+      `Correspondance classique : TCP/IP "${l.name}" ↔ OSI ${l.mapsOSI}.`
     );
     for (const ex of l.examples.slice(0,2)) {
       addQ(`Dans TCP/IP, ${ex} appartient le plus souvent à quelle couche ?`, l.name,
         shuffle(TCPIP.filter(x=>x.name!==l.name).map(x=>x.name)).slice(0,3),
-        `${ex} est généralement rattaché à la couche ${l.name} en TCP/IP.`
+        `${ex} est généralement rattaché à la couche "${l.name}" en TCP/IP.`
       );
     }
   }
@@ -424,55 +447,56 @@ function buildBank() {
   for (const [svc, port, trans] of PORTS) {
     addQ(`Quel est le port le plus couramment associé à ${svc} ?`, String(port),
       shuffle(PORTS.filter(x=>x[0]!==svc).slice(0,12).map(x=>String(x[1]))).slice(0,3),
-      `${svc} est classiquement associé au port ${port}.`
+      `Les ports servent à identifier un service sur une machine. ${svc} est classiquement associé au port ${port}.`
     );
     addQ(`${svc} utilise le plus souvent quel type de transport ?`, trans,
       shuffle(["TCP","UDP","UDP/TCP","IP"].filter(x=>x!==trans)).slice(0,3),
-      `Selon les usages courants : ${svc} → ${trans}.`
+      `${svc} utilise généralement ${trans}. (Certains services peuvent fonctionner dans plusieurs modes selon le contexte.)`
     );
   }
 
   for (const [proto, layerText] of PROTO_LAYER) {
     addQ(`À quelle couche se rattache principalement ${proto} ?`, layerText,
       shuffle(PROTO_LAYER.filter(x=>x[0]!==proto).map(x=>x[1])).slice(0,3),
-      `${proto} : ${layerText}.`
+      `${proto} se situe principalement ici : ${layerText}.`
     );
   }
 
   for (const [dev, layer] of DEVICES) {
     addQ(`À quelle couche OSI associe-t-on le plus souvent ${dev} ?`, layer,
       shuffle(DEVICES.filter(x=>x[0]!==dev).map(x=>x[1])).slice(0,3),
-      `${dev} est classiquement associé à ${layer}.`
+      `On associe souvent ${dev} à : ${layer}.`
     );
   }
 
   for (const [stmt, truth, expl] of FACTS_TF) {
-    addQ(`${stmt}.`, truth, truth==="Vrai" ? ["Faux","Ça dépend","Non applicable"] : ["Vrai","Ça dépend","Non applicable"],
+    addQ(`${stmt}.`, truth,
+      truth==="Vrai" ? ["Faux","Ça dépend","Non applicable"] : ["Vrai","Ça dépend","Non applicable"],
       expl || `Réponse : ${truth}.`
     );
   }
 
   for (const [range, kind] of IPV4_PRIVATE) {
     addQ(`Le réseau ${range} est une plage d’adresses :`, kind, ["Publique","Multicast","Loopback"],
-      `Les plages privées IPv4 incluent 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16.`
+      `Les plages privées IPv4 les plus connues sont : 10.0.0.0/8, 172.16.0.0/12 et 192.168.0.0/16.`
     );
   }
 
   for (const [pref, mask] of SUBNET_QUICK) {
     addQ(`Quel masque correspond au préfixe IPv4 ${pref} ?`, mask,
       shuffle(SUBNET_QUICK.filter(x=>x[0]!==pref).map(x=>x[1])).slice(0,3),
-      `Correspondance courante : ${pref} ↔ ${mask}.`
+      `Rappel : le préfixe ${pref} indique combien de bits sont pour le réseau. Ici, il correspond à ${mask}.`
     );
     addQ(`Quel préfixe CIDR correspond au masque ${mask} ?`, pref,
       shuffle(SUBNET_QUICK.filter(x=>x[1]!==mask).map(x=>x[0])).slice(0,3),
-      `Correspondance courante : ${mask} ↔ ${pref}.`
+      `Rappel : ${mask} correspond au préfixe ${pref}.`
     );
   }
 
   for (const [type, meaning] of DNS_RECORDS) {
     addQ(`Dans DNS, un enregistrement de type ${type} correspond à :`, meaning,
       shuffle(DNS_RECORDS.filter(x=>x[0]!==type).map(x=>x[1])).slice(0,3),
-      `Type DNS ${type} : ${meaning}.`
+      `Mémo : A=IPv4, AAAA=IPv6, CNAME=alias, MX=mail, NS=serveur DNS, PTR=inverse, SRV=service.`
     );
   }
 
@@ -480,7 +504,7 @@ function buildBank() {
     const [step, meaning] = DHCP_STEPS[i];
     addQ(`Dans DHCP, que signifie l’étape ${step} ?`, meaning,
       shuffle(DHCP_STEPS.filter(x=>x[1]!==meaning).map(x=>x[1])).slice(0,3),
-      `${step} : ${meaning}.`
+      `DHCP suit souvent DORA : Discover → Offer → Request → ACK. Ici, ${step} = ${meaning}.`
     );
     addQ(`Dans DHCP, quelle est l’étape numéro ${i+1} (ordre classique DORA) ?`, step,
       shuffle(DHCP_STEPS.filter(x=>x[0]!==step).map(x=>x[0])).slice(0,3),
@@ -491,39 +515,39 @@ function buildBank() {
   for (const [flag, role] of TCP_FLAGS) {
     addQ(`À quoi sert principalement le drapeau TCP ${flag} ?`, role,
       shuffle(TCP_FLAGS.filter(x=>x[0]!==flag).map(x=>x[1])).slice(0,3),
-      `TCP ${flag} : ${role}.`
+      `Les flags TCP pilotent la connexion (ex: SYN démarre, ACK confirme, FIN ferme). Ici, ${flag} = ${role}.`
     );
   }
 
   for (const [stmt, truth] of VLAN_FACTS) {
-    addQ(`${stmt}.`, truth, truth==="Vrai" ? ["Faux","Ça dépend","Non applicable"] : ["Vrai","Ça dépend","Non applicable"],
-      `Réponse : ${truth}.`
+    addQ(`${stmt}.`, truth,
+      truth==="Vrai" ? ["Faux","Ça dépend","Non applicable"] : ["Vrai","Ça dépend","Non applicable"],
+      `Rappel VLAN/STP : un VLAN sépare les domaines de broadcast ; STP évite les boucles L2 ; un trunk transporte plusieurs VLANs.`
     );
   }
 
   const MIX = [
-    ["Quelle couche OSI est responsable du routage ?", "Réseau", ["Transport","Session","Liaison de données"], "Le routage est en OSI 3."],
-    ["Quel protocole traduit généralement IP → MAC sur un LAN ?", "ARP", ["DNS","ICMP","TCP"], "ARP résout IP vers MAC sur un réseau local."],
-    ["Dans OSI, la couche Physique transporte surtout :", "Bits", ["Trames","Paquets","Segments"], "La couche 1 transporte des bits."],
-    ["Dans OSI, la couche Liaison manipule surtout :", "Trames", ["Bits","Paquets","Segments"], "La couche 2 manipule des trames."],
-    ["Dans OSI, la couche Réseau manipule surtout :", "Paquets", ["Bits","Trames","Segments"], "La couche 3 manipule des paquets."],
-    ["Dans OSI, la couche Transport manipule surtout :", "Segments (TCP) / Datagrammes (UDP)", ["Bits","Trames","Paquets"], "La couche 4 transporte segments/datagrammes."],
-    ["Quel est le rôle principal d’un switch classique ?", "Commuter des trames via les adresses MAC", ["Router des paquets IP","Chiffrer via TLS","Attribuer des IP via DHCP"], "Switch L2 : MAC/trames."],
-    ["Quel est le rôle principal d’un routeur ?", "Acheminer des paquets entre réseaux IP", ["Commuter des trames Ethernet","Coder/compresser les données","Créer des sessions applicatives"], "Routeur OSI 3."],
-    ["Le port 443 est associé à :", "HTTPS", ["HTTP","SSH","DNS"], "HTTPS : 443."],
-    ["Le port 53 est associé à :", "DNS", ["DHCP","HTTP","SMB"], "DNS : 53."],
-    ["La résolution inverse DNS est généralement réalisée via :", "PTR", ["MX","CNAME","SRV"], "PTR sert à la résolution inverse."],
-    ["Quel champ IP diminue à chaque routeur (IPv4) ?", "TTL", ["MTU","MAC","VLAN"], "TTL diminue à chaque saut."],
-    ["Quelle technologie segmente L2 en plusieurs domaines de broadcast ?", "VLAN", ["NAT","ICMP","TLS"], "VLAN segmente en domaines de broadcast."],
-    ["Quel protocole évite les boucles L2 dans un réseau commuté ?", "STP", ["DNS","DHCP","SIP"], "STP empêche les boucles au niveau 2."],
-    ["Quelle est la fonction typique de NAT ?", "Traduire des adresses IP", ["Résoudre des noms","Transporter des trames","Gérer les sessions"], "NAT traduit des adresses."],
-    ["Quel protocole est typiquement utilisé pour attribuer IP/masque/passerelle automatiquement ?", "DHCP", ["DNS","ICMP","ARP"], "DHCP fournit la config automatiquement."],
-    ["Quel protocole sert à diagnostiquer (ping) ?", "ICMP", ["TCP","ARP","SMTP"], "Ping utilise ICMP (echo)." ],
-    ["Le port 22 correspond à :", "SSH", ["FTP","Telnet","SMTP"], "SSH : 22."],
+    ["Quelle couche OSI est responsable du routage ?", "Réseau", ["Transport","Session","Liaison de données"], "Le routage (choisir le chemin) se fait en OSI couche 3 (IP)."],
+    ["Quel protocole traduit généralement IP → MAC sur un LAN ?", "ARP", ["DNS","ICMP","TCP"], "ARP sert à retrouver l’adresse MAC correspondant à une IP sur un réseau local."],
+    ["Dans OSI, la couche Physique transporte surtout :", "Bits", ["Trames","Paquets","Segments"], "La couche 1 gère le signal et transporte des bits."],
+    ["Dans OSI, la couche Liaison manipule surtout :", "Trames", ["Bits","Paquets","Segments"], "La couche 2 transporte des trames et utilise les adresses MAC."],
+    ["Dans OSI, la couche Réseau manipule surtout :", "Paquets", ["Bits","Trames","Segments"], "La couche 3 manipule des paquets IP et fait du routage."],
+    ["Dans OSI, la couche Transport manipule surtout :", "Segments (TCP) / Datagrammes (UDP)", ["Bits","Trames","Paquets"], "La couche 4 gère le transport : TCP (segments) ou UDP (datagrammes)."],
+    ["Quel est le rôle principal d’un switch classique ?", "Commuter des trames via les adresses MAC", ["Router des paquets IP","Chiffrer via TLS","Attribuer des IP via DHCP"], "Un switch L2 utilise surtout la table MAC pour envoyer les trames au bon port."],
+    ["Quel est le rôle principal d’un routeur ?", "Acheminer des paquets entre réseaux IP", ["Commuter des trames Ethernet","Coder/compresser les données","Créer des sessions applicatives"], "Un routeur travaille en L3 : il relie des réseaux IP différents."],
+    ["Le port 443 est associé à :", "HTTPS", ["HTTP","SSH","DNS"], "HTTPS = HTTP sécurisé (TLS) sur le port 443."],
+    ["Le port 53 est associé à :", "DNS", ["DHCP","HTTP","SMB"], "DNS utilise principalement le port 53 (UDP le plus souvent, TCP parfois)."],
+    ["La résolution inverse DNS est généralement réalisée via :", "PTR", ["MX","CNAME","SRV"], "PTR sert à faire IP → nom (reverse DNS)."],
+    ["Quel champ IP diminue à chaque routeur (IPv4) ?", "TTL", ["MTU","MAC","VLAN"], "TTL diminue à chaque saut et évite les boucles infinies."],
+    ["Quelle technologie segmente L2 en plusieurs domaines de broadcast ?", "VLAN", ["NAT","ICMP","TLS"], "Un VLAN sépare le réseau en domaines de broadcast distincts."],
+    ["Quel protocole évite les boucles L2 dans un réseau commuté ?", "STP", ["DNS","DHCP","SIP"], "STP bloque certains liens pour éviter les boucles en couche 2."],
+    ["Quelle est la fonction typique de NAT ?", "Traduire des adresses IP", ["Résoudre des noms","Transporter des trames","Gérer les sessions"], "NAT traduit des adresses (souvent privées → publique)."],
+    ["Quel protocole est typiquement utilisé pour attribuer IP/masque/passerelle automatiquement ?", "DHCP", ["DNS","ICMP","ARP"], "DHCP fournit automatiquement une configuration réseau."],
+    ["Quel protocole sert à diagnostiquer (ping) ?", "ICMP", ["TCP","ARP","SMTP"], "Ping utilise ICMP Echo Request/Reply."],
+    ["Le port 22 correspond à :", "SSH", ["FTP","Telnet","SMTP"], "SSH = accès distant sécurisé sur 22."],
   ];
   for (const [t,c,w,e] of MIX) addQ(t,c,w,e);
 
-  // Génération de variantes uniques pour atteindre largement 200 sans répétitions
   const protoToLikelyOSI = {
     "HTTP":"Application","HTTPS":"Application","DNS":"Application","DHCP":"Application","SMTP":"Application","FTP":"Application","SSH":"Application",
     "TCP":"Transport","UDP":"Transport",
@@ -537,14 +561,14 @@ function buildBank() {
     const layer = protoToLikelyOSI[p] || "Application";
     addQ(`Dans le modèle OSI, ${p} est généralement associé à quelle couche ?`, layer,
       shuffle(OSI.filter(x=>x.name!==layer).map(x=>x.name)).slice(0,3),
-      `${p} est généralement rattaché à la couche ${layer} dans un cours OSI.`
+      `Astuce : HTTP/DNS/DHCP/SMTP sont souvent “Application”, TCP/UDP “Transport”, IP/ICMP “Réseau”, Ethernet/VLAN/STP “Liaison”.`
     );
   }
 
   for (const l of OSI) {
     addQ(`Quelle couche OSI porte le nom ${l.name} ?`, `Couche ${l.layer}`,
       shuffle(OSI.filter(x=>x.layer!==l.layer).map(x=>`Couche ${x.layer}`)).slice(0,3),
-      `${l.name} correspond à la couche ${l.layer}.`
+      `Rappel : ${l.name} correspond à la couche ${l.layer}.`
     );
   }
 }
@@ -625,6 +649,89 @@ function resetAnswersOnly() {
   window.scrollTo({top:0, behavior:"smooth"});
 }
 
+/* ===========================
+   Explications "débutant"
+=========================== */
+function getBeginnerExplain(q) {
+  const text = String(q.text || "").toLowerCase();
+  const correct = q.choices[q.answerIndex];
+
+  const base = String(q.explain || "").trim();
+  if (base.length >= 90) return base;
+
+  const mOsiLayer = String(q.text || "").match(/couche\s+(\d)/i);
+  if (text.includes("modèle osi") && mOsiLayer) {
+    const n = mOsiLayer[1];
+    return `Rappel OSI (7 couches) :
+1 Physique (bits) → 2 Liaison (trames / MAC) → 3 Réseau (paquets IP / routage) → 4 Transport (TCP/UDP) → 5 Session → 6 Présentation (format/chiffrement) → 7 Application (HTTP/DNS…).
+Ici on te demande la couche ${n} : la bonne réponse est "${correct}".`;
+  }
+
+  if (text.includes("pdu") || text.includes("segment") || text.includes("datagramme") || text.includes("trame") || text.includes("paquet")) {
+    return `Un PDU est le “nom des données” selon la couche :
+- L1 : bits
+- L2 : trame (Ethernet, MAC)
+- L3 : paquet (IP)
+- L4 : segment (TCP) / datagramme (UDP)
+Donc ici : "${correct}".`;
+  }
+
+  if (text.includes("modèle tcp/ip") && text.includes("combien") && text.includes("couches")) {
+    return `Version très courante du modèle TCP/IP (4 couches) :
+1 Accès réseau (Ethernet/Wi-Fi, MAC, ARP)
+2 Internet (IP, routage)
+3 Transport (TCP/UDP)
+4 Application (HTTP, DNS, SMTP, DHCP…)
+Donc : "${correct}".`;
+  }
+
+  if (text.includes("port")) {
+    return `Les ports identifient un service sur une machine.
+Exemples à connaître : HTTP=80, HTTPS=443, DNS=53, SSH=22, SMTP=25.
+Ici, le bon port est "${correct}".`;
+  }
+
+  if (text.includes("dns") && (text.includes("enregistrement") || text.includes("type"))) {
+    return `Mémo DNS :
+A=IPv4, AAAA=IPv6, CNAME=alias, MX=mail, NS=serveur DNS, PTR=inverse (IP→nom), SRV=service.
+Ici : "${correct}".`;
+  }
+
+  if (text.includes("dhcp") && (text.includes("dora") || text.includes("discover") || text.includes("offer") || text.includes("request") || text.includes("ack") || text.includes("étape"))) {
+    return `DHCP donne une config IP automatiquement.
+Ordre DORA : Discover → Offer → Request → ACK.
+Ici : "${correct}".`;
+  }
+
+  if (text.includes("drapeau tcp") || text.includes("flag tcp") || text.includes("syn") || text.includes("ack") || text.includes("fin") || text.includes("rst")) {
+    return `Flags TCP (à retenir) :
+SYN démarre, ACK confirme, FIN ferme proprement, RST coupe brutalement.
+Ici : "${correct}".`;
+  }
+
+  if (correct === "Vrai" || correct === "Faux") {
+    return `Astuce Vrai/Faux : repère le protocole (TCP/UDP/DNS/IP...) puis rappelle la règle de base.
+Bonne réponse : "${correct}".`;
+  }
+
+  if (text.includes("à quelle couche") || text.includes("associe-t-on") || text.includes("appartient")) {
+    return `Astuce couches :
+- L2 : MAC, Ethernet, VLAN, STP (ARP est souvent “entre L2/L3”)
+- L3 : IP, ICMP, routage, NAT
+- L4 : TCP, UDP
+- L7 : HTTP, DNS, DHCP, SMTP…
+Donc ici : "${correct}".`;
+  }
+
+  return base || `Bonne réponse : "${correct}". Revois la règle liée au mot-clé de la question (protocole, couche, port…).`;
+}
+
+/* ===========================
+   Render
+   - Couleur OK/Bad après correction
+   - Explication UNIQUEMENT si faux ou non répondu
+   - Met en évidence la ligne choisie
+=========================== */
 function render() {
   const totalPages = Math.ceil(questions.length / pageSize);
 
@@ -677,6 +784,21 @@ function render() {
 
       lab.appendChild(inp);
       lab.appendChild(span);
+
+      // ✅ Après correction : rendre visibles "choisi" + "bonne réponse"
+      if (corrected) {
+        const ua = userAnswers[i];
+        const correctIdx = q.answerIndex;
+
+        if (idx === correctIdx) lab.classList.add("correct-answer");
+
+        if (ua === idx) {
+          lab.classList.add("selected");
+          if (ua === correctIdx) lab.classList.add("correct");
+          else lab.classList.add("wrong");
+        }
+      }
+
       choices.appendChild(lab);
     });
 
@@ -685,19 +807,29 @@ function render() {
     if (corrected) {
       const ua = userAnswers[i];
       const correctIdx = q.answerIndex;
+      const isCorrect = (ua === correctIdx);
 
-      if (ua === correctIdx) card.classList.add("ok");
-      else card.classList.add("bad");
+      if (isCorrect) {
+        card.classList.add("ok");
+      } else {
+        card.classList.add("bad");
 
-      const exp = document.createElement("div");
-      exp.className = "explain";
-      const uaTxt = (ua === null) ? "— (non répondu)" : q.choices[ua];
-      exp.innerHTML = `
-        <div><b>Ta réponse :</b> ${uaTxt}</div>
-        <div><b>Bonne réponse :</b> ${q.choices[correctIdx]}</div>
-        <div>${q.explain || ""}</div>
-      `;
-      card.appendChild(exp);
+        const exp = document.createElement("div");
+        exp.className = "explain";
+
+        const uaTxt = (ua === null) ? "— (non répondu)" : q.choices[ua];
+        const msg = (ua === null)
+          ? "⚠️ Tu n’as pas répondu à cette question."
+          : "❌ Ta réponse est incorrecte.";
+
+        exp.innerHTML = `
+          <div><b>Ta réponse :</b> ${uaTxt}</div>
+          <div><b>Bonne réponse :</b> ${q.choices[correctIdx]}</div>
+          <div>${msg}</div>
+          <div style="margin-top:6px;">${getBeginnerExplain(q)}</div>
+        `;
+        card.appendChild(exp);
+      }
     }
 
     elQ.appendChild(card);

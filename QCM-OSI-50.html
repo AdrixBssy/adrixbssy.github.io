@@ -28,6 +28,14 @@
     .explain{color:#cfd6ff;font-size:13px;margin-top:8px;opacity:.95}
     .small{font-size:13px;color:#b9c2ff}
     a{color:#9db4ff}
+    /* Affichage “léger” des significations d’acronymes */
+    .acro-meaning{
+    color:#b9c2ff;
+    font-size:0.92em;
+    opacity:0.9;
+    margin-left:6px;
+    white-space:nowrap;
+    }
   </style>
 </head>
 <body>
@@ -70,8 +78,6 @@
 =========================== */
 const ACRONYMS = {
   "OSI": "OSI (Open Systems Interconnection)",
-  "TCP/IP": "TCP/IP (Transmission Control Protocol / Internet Protocol)",
-  "IP": "IP (Internet Protocol)",
   "IPv4": "IPv4 (Internet Protocol version 4)",
   "IPv6": "IPv6 (Internet Protocol version 6)",
   "TCP": "TCP (Transmission Control Protocol)",
@@ -136,7 +142,6 @@ function normKey(s){
 
 /* ===========================
    Banque de 200 questions uniques
-   (vérifiée automatiquement)
 =========================== */
 
 const OSI = [

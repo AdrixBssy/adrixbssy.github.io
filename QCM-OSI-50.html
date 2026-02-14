@@ -3,6 +3,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>QCM OSI & TCP/IP — 50 aléatoires </title>
+
   <style>
     body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:0;background:#0b1020;color:#e8ecff}
     header{padding:18px 16px;background:#111a33;border-bottom:1px solid rgba(255,255,255,.08);position:sticky;top:0;z-index:10}
@@ -13,7 +14,43 @@
     button{background:#2b5cff;color:#fff;border:0;padding:10px 12px;border-radius:10px;font-weight:600;cursor:pointer}
     button.secondary{background:#26304f}
     button:disabled{opacity:.55;cursor:not-allowed}
-    .wrap{max-width:1000px;margin:0 auto;padding:16px}
+
+    /* --- Panneau acronymes (fixe à gauche) --- */
+    #acronymBox{
+      position:fixed;
+      left:10px;
+      top:170px;
+      width:210px;
+      max-height:72vh;
+      overflow:auto;
+
+      background:rgba(255,255,255,.05);
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:14px;
+      padding:12px;
+
+      backdrop-filter: blur(6px);
+    }
+    #acronymBox h3{margin:0 0 10px 0;font-size:14px;color:#b9c2ff;display:flex;align-items:center;gap:8px}
+    #acroSearch{
+      width:100%;
+      box-sizing:border-box;
+      padding:8px 10px;
+      border-radius:10px;
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(0,0,0,.20);
+      color:#e8ecff;
+      outline:none;
+      margin-bottom:10px;
+      font-size:13px;
+    }
+    #acroSearch::placeholder{color:rgba(185,194,255,.65)}
+    .acro-item{padding:8px 8px;border-radius:12px;border:1px solid rgba(255,255,255,.06);background:rgba(0,0,0,.10);margin-bottom:8px}
+    .acro-key{font-weight:800;color:#9db4ff}
+    .acro-value{color:#b9c2ff;font-size:12px;line-height:1.35;margin-top:3px}
+
+    /* --- Contenu principal --- */
+    .wrap{max-width:1000px;margin:0 auto;padding:16px;margin-left:240px}
     .card{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:14px;margin:12px 0}
     .qtitle{margin:0 0 10px 0;font-size:15px;line-height:1.35}
     .choices{display:grid;gap:8px}
@@ -27,21 +64,24 @@
     .bad{outline:2px solid rgba(255,80,80,.40)}
     .explain{color:#cfd6ff;font-size:13px;margin-top:8px;opacity:.95}
     .small{font-size:13px;color:#b9c2ff}
-    a{color:#9db4ff}
-    /* Affichage “léger” des significations d’acronymes */
-    .acro-meaning{
-    color:#b9c2ff;
-    font-size:0.92em;
-    opacity:0.9;
-    margin-left:6px;
-    white-space:nowrap;
+
+    /* --- Mobile: panneau en haut (non fixe) --- */
+    @media (max-width: 900px){
+      #acronymBox{
+        position:static;
+        width:auto;
+        max-height:none;
+        margin:12px 16px 0 16px;
+      }
+      .wrap{margin-left:0}
     }
   </style>
 </head>
+
 <body>
 <header>
   <div class="row">
-    <h1>QCM OSI & TCP/IP — 50 aléatoires (banque 200 uniques)</h1>
+    <h1>QCM OSI & TCP/IP — 50 aléatoires </h1>
   </div>
   <div class="row meta">
     <span class="pill" id="pillBank">Banque: …</span>
@@ -59,6 +99,13 @@
   </div>
 </header>
 
+<!-- Panneau Acronymes -->
+<div id="acronymBox">
+  <h3>📘 Acronymes</h3>
+  <input id="acroSearch" type="text" placeholder="Rechercher (ex: DNS, VLAN…)" />
+  <div id="acroList"></div>
+</div>
+
 <div class="wrap">
   <div class="result" id="resultBox" style="display:none"></div>
   <div id="questions"></div>
@@ -68,58 +115,97 @@
       <button id="btnPrev2" class="secondary">◀ Page précédente</button>
       <button id="btnNext2" class="secondary">Page suivante ▶</button>
     </div>
-    <div class="small">Astuce : clique sur “Nouveau QCM (50)” pour un tirage différent, sans répétitions dans le même quiz.</div>
+    <div class="small"> TSSR - 2026 </div>
   </div>
 </div>
 
 <script>
 /* ===========================
-   Acronymes
+   Acronymes (panneau à gauche)
+   (On NE les injecte PAS dans les questions)
 =========================== */
 const ACRONYMS = {
-  "OSI": "OSI (Open Systems Interconnection)",
-  "IPv4": "IPv4 (Internet Protocol version 4)",
-  "IPv6": "IPv6 (Internet Protocol version 6)",
-  "UDP": "UDP (User Datagram Protocol)",
-  "HTTP": "HTTP (HyperText Transfer Protocol)",
-  "HTTPS": "HTTPS (HyperText Transfer Protocol Secure)",
-  "DoT": "DNS over TLS",
+  "ACK": "Acknowledgment (accusé de réception TCP)",
+  "ARP": "Address Resolution Protocol",
+  "BGP": "Border Gateway Protocol",
+  "CIDR": "Classless Inter-Domain Routing",
+  "CNAME": "Canonical Name (alias DNS)",
+  "DHCP": "Dynamic Host Configuration Protocol",
+  "DNS": "Domain Name System",
   "DoH": "DNS over HTTPS",
-  "DNS": "DNS (Domain Name System)",
-  "DHCP": "DHCP (Dynamic Host Configuration Protocol)",
-  "ICMP": "ICMP (Internet Control Message Protocol)",
-  "ARP": "ARP (Address Resolution Protocol)",
-  "NAT": "NAT (Network Address Translation)",
-  "CIDR": "CIDR (Classless Inter-Domain Routing)",
-  "MTU": "MTU (Maximum Transmission Unit)",
-  "TTL": "TTL (Time To Live)",
-  "MAC": "MAC (Media Access Control)",
-  "FTP": "FTP (File Transfer Protocol)",
-  "SSH": "SSH (Secure Shell)",
-  "SMTP": "SMTP (Simple Mail Transfer Protocol)",
-  "POP3": "POP3 (Post Office Protocol v3)",
-  "IMAP": "IMAP (Internet Message Access Protocol)",
-  "NTP": "NTP (Network Time Protocol)",
-  "SNMP": "SNMP (Simple Network Management Protocol)",
-  "LDAP": "LDAP (Lightweight Directory Access Protocol)",
-  "RDP": "RDP (Remote Desktop Protocol)",
-  "SIP": "SIP (Session Initiation Protocol)",
-  "SMB": "SMB (Server Message Block)",
-  "TLS": "TLS (Transport Layer Security)",
-  "VLAN": "VLAN (Virtual LAN)",
-  "STP": "STP (Spanning Tree Protocol)",
-  "QoS": "QoS (Quality of Service)"
+  "DoT": "DNS over TLS",
+  "DORA": "Discover / Offer / Request / ACK (séquence DHCP)",
+  "Ethernet": "Technologie réseau filaire L2",
+  "FIN": "Finish (fin de connexion TCP)",
+  "FTP": "File Transfer Protocol",
+  "FTPS": "FTP over TLS/SSL",
+  "HTTP": "HyperText Transfer Protocol",
+  "HTTPS": "HyperText Transfer Protocol Secure",
+  "ICMP": "Internet Control Message Protocol",
+  "IKE": "Internet Key Exchange",
+  "IMAP": "Internet Message Access Protocol",
+  "IP": "Internet Protocol",
+  "IPsec": "Internet Protocol Security",
+  "IPv4": "Internet Protocol version 4",
+  "IPv6": "Internet Protocol version 6",
+  "L2TP": "Layer 2 Tunneling Protocol",
+  "LDAP": "Lightweight Directory Access Protocol",
+  "MAC": "Media Access Control (adresse L2)",
+  "MTU": "Maximum Transmission Unit",
+  "MX": "Mail Exchanger (DNS)",
+  "NAT": "Network Address Translation",
+  "NS": "Name Server (DNS)",
+  "NTP": "Network Time Protocol",
+  "OSI": "Open Systems Interconnection (modèle à 7 couches)",
+  "OSPF": "Open Shortest Path First",
+  "POP3": "Post Office Protocol v3",
+  "PPTP": "Point-to-Point Tunneling Protocol",
+  "PTR": "Pointer (DNS inverse)",
+  "QoS": "Quality of Service",
+  "RDP": "Remote Desktop Protocol",
+  "RIP": "Routing Information Protocol",
+  "RPC": "Remote Procedure Call",
+  "RST": "Reset (réinitialisation TCP)",
+  "SFTP": "SSH File Transfer Protocol",
+  "SIP": "Session Initiation Protocol",
+  "SMB": "Server Message Block",
+  "SMTP": "Simple Mail Transfer Protocol",
+  "SMTPS": "SMTP over TLS/SSL",
+  "SNMP": "Simple Network Management Protocol",
+  "SRV": "Service record (DNS)",
+  "SSH": "Secure Shell",
+  "STP": "Spanning Tree Protocol",
+  "SYN": "Synchronize (début handshake TCP)",
+  "Syslog": "System Logging (journalisation réseau)",
+  "TCP": "Transmission Control Protocol",
+  "TCP/IP": "Suite de protocoles Internet (TCP + IP)",
+  "Telnet": "Accès distant non chiffré (ancien)",
+  "TFTP": "Trivial File Transfer Protocol",
+  "TLS": "Transport Layer Security",
+  "TTL": "Time To Live",
+  "UDP": "User Datagram Protocol",
+  "URG": "Urgent (flag TCP, rare)",
+  "VLAN": "Virtual LAN"
 };
 
-function expandAcronyms(text) {
-  if (!text) return text;
-  let result = String(text);
-  // remplacements par "mots entiers"
-  for (const key in ACRONYMS) {
-    const re = new RegExp(`\\b${key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "g");
-    result = result.replace(re, ACRONYMS[key]);
-  }
-  return result;
+function renderAcronyms(filterText="") {
+  const container = document.getElementById("acroList");
+  const q = filterText.trim().toLowerCase();
+
+  const sorted = Object.entries(ACRONYMS)
+    .sort((a,b)=>a[0].localeCompare(b[0], "fr"));
+
+  const filtered = sorted.filter(([k,v]) => {
+    if (!q) return true;
+    return k.toLowerCase().includes(q) || v.toLowerCase().includes(q);
+  });
+
+  container.innerHTML = filtered.map(([key, value]) => `
+    <div class="acro-item">
+      <div class="acro-key">${key}</div>
+      <div class="acro-value">${value}</div>
+    </div>
+  `).join("") || `<div class="acro-value">Aucun résultat.</div>`;
 }
 
 /* ===========================
@@ -142,9 +228,8 @@ function normKey(s){
 }
 
 /* ===========================
-   Banque de 200 questions uniques
+   Banque de 200 questions
 =========================== */
-
 const OSI = [
   {layer: 7, name:"Application", pdu:"Données", examples:["HTTP","DNS","SMTP","FTP","SSH","DHCP"]},
   {layer: 6, name:"Présentation", pdu:"Données", examples:["Chiffrement","Compression","Encodage","TLS"]},
@@ -269,38 +354,36 @@ const SUBNET_QUICK = [
 
 const VLAN_FACTS = [
   ["Un VLAN segmente un réseau L2 en domaines de broadcast séparés", "Vrai"],
-  ["Une liaison 'trunk' transporte plusieurs VLANs", "Vrai"],
+  ["Une liaison trunk transporte plusieurs VLANs", "Vrai"],
   ["STP évite les boucles L2 dans un réseau commuté", "Vrai"],
 ];
 
-const QMAP = new Map(); // clé -> question
+const QMAP = new Map(); // key -> question
 
 function addQ(text, correct, wrongs, explain) {
-  const t = expandAcronyms(text);
-  const key = normKey(t);
-  if (QMAP.has(key)) return; // déduplication stricte par texte
+  const key = normKey(text);
+  if (QMAP.has(key)) return;
 
   const choices = [];
-  uniqPush(choices, expandAcronyms(correct));
-  for (const w of wrongs) uniqPush(choices, expandAcronyms(w));
+  uniqPush(choices, correct);
+  for (const w of wrongs) uniqPush(choices, w);
 
   const fillers = ["Aucune de ces réponses", "Toutes ces réponses", "Cela dépend du contexte", "Non applicable"];
   for (const f of fillers) if (choices.length < 4) uniqPush(choices, f);
 
   const finalChoices = shuffle(choices.slice(0,4));
-  const answerIndex = finalChoices.indexOf(expandAcronyms(correct));
+  const answerIndex = finalChoices.indexOf(correct);
 
   QMAP.set(key, {
     id: QMAP.size + 1,
-    text: t,
+    text,
     choices: finalChoices,
     answerIndex,
-    explain: expandAcronyms(explain || "")
+    explain: explain || ""
   });
 }
 
 function buildBank() {
-  // OSI / TCP-IP fondations
   addQ("Combien de couches comporte le modèle OSI ?", "7", ["4","5","8"], "Le modèle OSI comporte 7 couches.");
   addQ("Combien de couches comporte le modèle TCP/IP (version 4 couches) ?", "4", ["3","5","7"], "Le modèle TCP/IP est souvent présenté en 4 couches.");
 
@@ -313,7 +396,6 @@ function buildBank() {
       shuffle(["Bits","Trame","Paquet","Segment (TCP) / Datagramme (UDP)"].filter(x=>x!==l.pdu)).slice(0,3),
       `PDU typique : ${l.name} → ${l.pdu}.`
     );
-    // 2 exemples par couche (pour augmenter l’unicité)
     for (const ex of l.examples.slice(0,2)) {
       addQ(`À quelle couche OSI associe-t-on le plus souvent ${ex} ?`, l.name,
         shuffle(OSI.filter(x=>x.layer!==l.layer).map(x=>x.name)).slice(0,3),
@@ -339,7 +421,6 @@ function buildBank() {
     }
   }
 
-  // Ports
   for (const [svc, port, trans] of PORTS) {
     addQ(`Quel est le port le plus couramment associé à ${svc} ?`, String(port),
       shuffle(PORTS.filter(x=>x[0]!==svc).slice(0,12).map(x=>String(x[1]))).slice(0,3),
@@ -351,7 +432,6 @@ function buildBank() {
     );
   }
 
-  // Protocole -> couche
   for (const [proto, layerText] of PROTO_LAYER) {
     addQ(`À quelle couche se rattache principalement ${proto} ?`, layerText,
       shuffle(PROTO_LAYER.filter(x=>x[0]!==proto).map(x=>x[1])).slice(0,3),
@@ -359,7 +439,6 @@ function buildBank() {
     );
   }
 
-  // Équipements
   for (const [dev, layer] of DEVICES) {
     addQ(`À quelle couche OSI associe-t-on le plus souvent ${dev} ?`, layer,
       shuffle(DEVICES.filter(x=>x[0]!==dev).map(x=>x[1])).slice(0,3),
@@ -367,21 +446,18 @@ function buildBank() {
     );
   }
 
-  // Vrai/Faux -> QCM
   for (const [stmt, truth, expl] of FACTS_TF) {
     addQ(`${stmt}.`, truth, truth==="Vrai" ? ["Faux","Ça dépend","Non applicable"] : ["Vrai","Ça dépend","Non applicable"],
       expl || `Réponse : ${truth}.`
     );
   }
 
-  // IPv4 privées
   for (const [range, kind] of IPV4_PRIVATE) {
     addQ(`Le réseau ${range} est une plage d’adresses :`, kind, ["Publique","Multicast","Loopback"],
-      `Les plages privées IPv4 incluent notamment 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16.`
+      `Les plages privées IPv4 incluent 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16.`
     );
   }
 
-  // Masques rapides
   for (const [pref, mask] of SUBNET_QUICK) {
     addQ(`Quel masque correspond au préfixe IPv4 ${pref} ?`, mask,
       shuffle(SUBNET_QUICK.filter(x=>x[0]!==pref).map(x=>x[1])).slice(0,3),
@@ -393,7 +469,6 @@ function buildBank() {
     );
   }
 
-  // DNS records
   for (const [type, meaning] of DNS_RECORDS) {
     addQ(`Dans DNS, un enregistrement de type ${type} correspond à :`, meaning,
       shuffle(DNS_RECORDS.filter(x=>x[0]!==type).map(x=>x[1])).slice(0,3),
@@ -401,21 +476,18 @@ function buildBank() {
     );
   }
 
-  // DHCP étapes (ordre)
   for (let i = 0; i < DHCP_STEPS.length; i++) {
     const [step, meaning] = DHCP_STEPS[i];
-    const wrong = shuffle(DHCP_STEPS.filter(x=>x[0]!==step).map(x=>x[0])).slice(0,3);
     addQ(`Dans DHCP, que signifie l’étape ${step} ?`, meaning,
       shuffle(DHCP_STEPS.filter(x=>x[1]!==meaning).map(x=>x[1])).slice(0,3),
       `${step} : ${meaning}.`
     );
     addQ(`Dans DHCP, quelle est l’étape numéro ${i+1} (ordre classique DORA) ?`, step,
-      wrong,
+      shuffle(DHCP_STEPS.filter(x=>x[0]!==step).map(x=>x[0])).slice(0,3),
       `Ordre classique : Discover → Offer → Request → ACK.`
     );
   }
 
-  // TCP flags
   for (const [flag, role] of TCP_FLAGS) {
     addQ(`À quoi sert principalement le drapeau TCP ${flag} ?`, role,
       shuffle(TCP_FLAGS.filter(x=>x[0]!==flag).map(x=>x[1])).slice(0,3),
@@ -423,14 +495,12 @@ function buildBank() {
     );
   }
 
-  // VLAN / STP
   for (const [stmt, truth] of VLAN_FACTS) {
     addQ(`${stmt}.`, truth, truth==="Vrai" ? ["Faux","Ça dépend","Non applicable"] : ["Vrai","Ça dépend","Non applicable"],
       `Réponse : ${truth}.`
     );
   }
 
-  // Questions “mix” supplémentaires (uniques)
   const MIX = [
     ["Quelle couche OSI est responsable du routage ?", "Réseau", ["Transport","Session","Liaison de données"], "Le routage est en OSI 3."],
     ["Quel protocole traduit généralement IP → MAC sur un LAN ?", "ARP", ["DNS","ICMP","TCP"], "ARP résout IP vers MAC sur un réseau local."],
@@ -440,8 +510,6 @@ function buildBank() {
     ["Dans OSI, la couche Transport manipule surtout :", "Segments (TCP) / Datagrammes (UDP)", ["Bits","Trames","Paquets"], "La couche 4 transporte segments/datagrammes."],
     ["Quel est le rôle principal d’un switch classique ?", "Commuter des trames via les adresses MAC", ["Router des paquets IP","Chiffrer via TLS","Attribuer des IP via DHCP"], "Switch L2 : MAC/trames."],
     ["Quel est le rôle principal d’un routeur ?", "Acheminer des paquets entre réseaux IP", ["Commuter des trames Ethernet","Coder/compresser les données","Créer des sessions applicatives"], "Routeur OSI 3."],
-    ["Quel protocole est le plus souvent utilisé pour le web en clair ?", "HTTP", ["SSH","SMB","SNMP"], "HTTP est le protocole web en clair."],
-    ["Quel protocole fournit un contrôle de fiabilité (ACK/retransmission) ?", "TCP", ["UDP","ICMP","ARP"], "TCP assure fiabilité/ordre."],
     ["Le port 443 est associé à :", "HTTPS", ["HTTP","SSH","DNS"], "HTTPS : 443."],
     ["Le port 53 est associé à :", "DNS", ["DHCP","HTTP","SMB"], "DNS : 53."],
     ["La résolution inverse DNS est généralement réalisée via :", "PTR", ["MX","CNAME","SRV"], "PTR sert à la résolution inverse."],
@@ -453,13 +521,9 @@ function buildBank() {
     ["Quel protocole sert à diagnostiquer (ping) ?", "ICMP", ["TCP","ARP","SMTP"], "Ping utilise ICMP (echo)." ],
     ["Le port 22 correspond à :", "SSH", ["FTP","Telnet","SMTP"], "SSH : 22."],
   ];
-
   for (const [t,c,w,e] of MIX) addQ(t,c,w,e);
 
-  // S’assurer d’avoir ≥ 200 uniques, sinon ajouter d’autres variantes uniques
-  // Variantes générées: "Quel protocole appartient à la couche X" + "Quel couple OSI->PDU"
-  const extraProtos = ["HTTP","HTTPS","DNS","DHCP","ICMP","ARP","TCP","UDP","SMTP","FTP","SSH","NTP","SNMP","LDAP","SMB","SIP","TLS","VLAN","STP","NAT"];
-  const osiNameToLayer = new Map(OSI.map(x=>[x.name,x.layer]));
+  // Génération de variantes uniques pour atteindre largement 200 sans répétitions
   const protoToLikelyOSI = {
     "HTTP":"Application","HTTPS":"Application","DNS":"Application","DHCP":"Application","SMTP":"Application","FTP":"Application","SSH":"Application",
     "TCP":"Transport","UDP":"Transport",
@@ -467,29 +531,32 @@ function buildBank() {
     "ARP":"Liaison de données","Ethernet":"Liaison de données","VLAN":"Liaison de données","STP":"Liaison de données",
     "TLS":"Présentation"
   };
+  const allProtos = ["HTTP","HTTPS","DNS","DHCP","ICMP","ARP","TCP","UDP","SMTP","FTP","SSH","NTP","SNMP","LDAP","SMB","SIP","TLS","VLAN","STP","NAT"];
 
-  for (const p of extraProtos) {
+  for (const p of allProtos) {
     const layer = protoToLikelyOSI[p] || "Application";
     addQ(`Dans le modèle OSI, ${p} est généralement associé à quelle couche ?`, layer,
       shuffle(OSI.filter(x=>x.name!==layer).map(x=>x.name)).slice(0,3),
       `${p} est généralement rattaché à la couche ${layer} dans un cours OSI.`
     );
-    addQ(`Quelle couche OSI porte le numéro ${osiNameToLayer.get(layer) || 7} ?`, layer,
-      shuffle(OSI.filter(x=>x.name!==layer).map(x=>x.name)).slice(0,3),
-      `La couche ${layer} correspond à OSI ${osiNameToLayer.get(layer) || "?"}.`
+  }
+
+  for (const l of OSI) {
+    addQ(`Quelle couche OSI porte le nom ${l.name} ?`, `Couche ${l.layer}`,
+      shuffle(OSI.filter(x=>x.layer!==l.layer).map(x=>`Couche ${x.layer}`)).slice(0,3),
+      `${l.name} correspond à la couche ${l.layer}.`
     );
   }
 }
 
 buildBank();
 
-// Transforme la Map en tableau, puis vérifie unicité + taille
-const questionBank = Array.from(QMAP.values());
+const questionBankAll = Array.from(QMAP.values());
 
-// Vérification “200 questions différentes”
-(function verify200Unique() {
+// Vérification unicité + minimum 200
+(function verifyUniqueMin200() {
   const seen = new Set();
-  for (const q of questionBank) {
+  for (const q of questionBankAll) {
     const k = normKey(q.text);
     if (seen.has(k)) {
       console.error("Doublon détecté :", q.text);
@@ -497,20 +564,20 @@ const questionBank = Array.from(QMAP.values());
     }
     seen.add(k);
   }
-  if (questionBank.length < 200) {
-    console.error("Banque trop petite :", questionBank.length);
+  if (questionBankAll.length < 200) {
+    console.error("Banque trop petite :", questionBankAll.length);
     throw new Error("La banque n'a pas atteint 200 questions uniques.");
   }
 })();
 
-// On garde exactement 200 uniques (les 200 premières uniques de la banque)
+// Banque finale = 200 uniques
 const BANK_SIZE = 200;
-const bank200 = questionBank.slice(0, BANK_SIZE);
+const bank200 = questionBankAll.slice(0, BANK_SIZE);
 
 /* ===========================
    Quiz actif: 50 aléatoires sans répétition
 =========================== */
-let questions = [];        // quiz actif (50)
+let questions = [];
 const QUIZ_SIZE = 50;
 
 const pageSize = 10; // 50 questions => 5 pages
@@ -539,16 +606,12 @@ function answeredCount() {
 }
 
 function makeNewQuiz() {
-  // bank200 est déjà unique par texte.
-  const picked = shuffle(bank200).slice(0, QUIZ_SIZE);
-  questions = picked;
-
+  questions = shuffle(bank200).slice(0, QUIZ_SIZE);
   userAnswers = new Array(questions.length).fill(null);
   corrected = false;
   page = 0;
   resultBox.style.display = "none";
   pillScore.textContent = "Score: —";
-
   render();
   window.scrollTo({top:0, behavior:"smooth"});
 }
@@ -699,9 +762,10 @@ btnReset.onclick = resetAnswersOnly;
 
 // init
 makeNewQuiz();
+renderAcronyms();
+document.getElementById("acroSearch").addEventListener("input", (e)=>renderAcronyms(e.target.value));
 
-// Petit log utile
-console.log("Banque générée:", bank200.length, "questions uniques.");
+console.log("Banque finale:", bank200.length, "questions uniques.");
 </script>
 </body>
 </html>

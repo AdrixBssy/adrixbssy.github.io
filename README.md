@@ -82,12 +82,16 @@
       <a class="btn" href="https://adrixbssy.github.io/QCM-OSI-50.html">
         🚀 QCM OSI & TCP/IP (50 questions)
       </a>
+
+      <a class="btn" href="https://adrixbssy.github.io/Linux-01.html">
+        🐧 QCM Linux - Commandes de base (50 questions)
+      </a>
     </div>
   </div>
 
   <footer>
     © 2026 - By Adrixbssy
   </footer>
-
+  
 </body>
 </html>

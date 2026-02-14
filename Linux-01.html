@@ -1,0 +1,487 @@
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>QCM Linux — Commandes de base </title>
+
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:0;background:#0b1020;color:#e8ecff}
+    header{padding:18px 16px;background:#111a33;border-bottom:1px solid rgba(255,255,255,.08);position:sticky;top:0;z-index:10}
+    header h1{margin:0 0 8px 0;font-size:18px}
+    header .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+    .meta{display:flex;flex-wrap:wrap;gap:10px;align-items:center;color:#b9c2ff;font-size:14px}
+    .pill{padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.08)}
+    button{background:#2b5cff;color:#fff;border:0;padding:10px 12px;border-radius:10px;font-weight:600;cursor:pointer}
+    button.secondary{background:#26304f}
+    button:disabled{opacity:.55;cursor:not-allowed}
+
+    #glossaryBox{
+      position:fixed; left:10px; top:140px; width:230px; max-height:72vh; overflow:auto;
+      background: rgba(157, 180, 255, 0.10);
+      border: 1px solid rgba(157, 180, 255, 0.22);
+      border-radius:14px; padding:12px;
+      backdrop-filter: blur(6px);
+      z-index:5;
+    }
+    #glossaryBox h3{margin:0 0 10px 0;font-size:14px;color:#cfd6ff}
+    #glossarySearch{
+      width:100%; box-sizing:border-box; padding:8px 10px; border-radius:10px;
+      border:1px solid rgba(157, 180, 255, 0.18);
+      background:rgba(0,0,0,.20); color:#e8ecff; outline:none; margin-bottom:10px; font-size:13px;
+    }
+    .g-item{padding:8px;border-radius:12px;border:1px solid rgba(157, 180, 255, 0.14);background:rgba(157, 180, 255, 0.06);margin-bottom:8px}
+    .g-key{font-weight:800;color:#cfe0ff}
+    .g-value{color:#dbe3ff;font-size:12px;line-height:1.35;margin-top:3px;opacity:.95}
+
+    .wrap{max-width:1000px;margin:0 auto;padding:16px;margin-left:260px}
+    .card{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:14px;margin:12px 0}
+    .qtitle{margin:0 0 10px 0;font-size:15px;line-height:1.35}
+    .choices{display:grid;gap:8px}
+    label.choice{display:flex;gap:10px;align-items:flex-start;padding:10px;border-radius:12px;border:1px solid rgba(255,255,255,.10);background:rgba(0,0,0,.12);cursor:pointer}
+    label.choice:hover{border-color:rgba(43,92,255,.6)}
+    input[type="radio"]{margin-top:2px}
+    .footerbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin:14px 0}
+    .nav{display:flex;gap:8px;flex-wrap:wrap}
+    .result{padding:12px;border-radius:14px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.18)}
+    .ok{outline:2px solid rgba(0,255,150,.35)}
+    .bad{outline:2px solid rgba(255,80,80,.40)}
+    .unanswered{outline:2px solid rgba(255,170,60,.45)}
+    .explain{color:#cfd6ff;font-size:13px;margin-top:10px;padding:10px;border-radius:12px;border:1px solid rgba(255,255,255,.10);background:rgba(0,0,0,.14);line-height:1.4}
+    .small{font-size:13px;color:#b9c2ff}
+
+    .errorBox{
+      display:none;
+      margin:12px 0;
+      padding:12px;
+      border-radius:14px;
+      border:1px solid rgba(255,80,80,.45);
+      background:rgba(255,80,80,.10);
+      color:#ffd2d2;
+      white-space:pre-wrap;
+      font-size:13px;
+    }
+
+    /* ✅ Mise en évidence après correction */
+    .choice.chosen{
+      border-color: rgba(43,92,255,.75);
+      background: rgba(43,92,255,.14);
+    }
+    .choice.correct{
+      border-color: rgba(0,255,150,.55);
+      background: rgba(0,255,150,.12);
+    }
+    .choice.wrong{
+      border-color: rgba(255,80,80,.55);
+      background: rgba(255,80,80,.12);
+    }
+
+    @media (max-width: 980px){
+      #glossaryBox{position:static;width:auto;max-height:none;margin:12px 16px 0 16px}
+      .wrap{margin-left:0}
+    }
+  </style>
+</head>
+
+<body>
+<header>
+  <div class="row">
+    <h1>QCM Linux — Commandes de base </h1>
+  </div>
+  <div class="row meta">
+    <span class="pill" id="pillCount">Questions: …</span>
+    <span class="pill" id="pillPage">Page: …</span>
+    <span class="pill" id="pillAnswered">Répondu: …</span>
+    <span class="pill" id="pillScore">Score: —</span>
+  </div>
+  <div class="row" style="margin-top:10px">
+    <button id="btnPrev" class="secondary">◀ Page précédente</button>
+    <button id="btnNext" class="secondary">Page suivante ▶</button>
+    <button id="btnFinish">Corriger</button>
+    <button id="btnNew" class="secondary">Nouveau QCM (50)</button>
+    <button id="btnReset" class="secondary">Effacer réponses</button>
+  </div>
+</header>
+
+<div id="glossaryBox">
+  <h3>🐧 Glossaire (base)</h3>
+  <input id="glossarySearch" type="text" placeholder="Rechercher (ex: grep, pipe, redirection…)" />
+  <div id="glossaryList"></div>
+</div>
+
+<div class="wrap">
+  <div class="errorBox" id="errorBox"></div>
+  <div class="result" id="resultBox" style="display:none"></div>
+  <div id="questions"></div>
+
+  <div class="footerbar">
+    <div class="nav">
+      <button id="btnPrev2" class="secondary">◀ Page précédente</button>
+      <button id="btnNext2" class="secondary">Page suivante ▶</button>
+    </div>
+    <div class="small">TSSR - 2026</div>
+  </div>
+</div>
+
+<script>
+window.addEventListener("DOMContentLoaded", () => {
+  const errorBox = document.getElementById("errorBox");
+  function showError(err){
+    errorBox.style.display = "block";
+    errorBox.textContent = "Erreur JavaScript détectée :\n\n" + (err && err.stack ? err.stack : String(err));
+  }
+
+  try {
+    /* ===== Glossaire (textContent => safe) ===== */
+    const GLOSSARY = {
+      "pwd": "Affiche le répertoire courant.",
+      "cd": "Change de répertoire.",
+      "ls": "Liste le contenu d’un répertoire.",
+      "mkdir": "Crée un répertoire.",
+      "rmdir": "Supprime un répertoire vide.",
+      "cp": "Copie des fichiers/dossiers (cp -r).",
+      "mv": "Déplace/renomme.",
+      "rm": "Supprime (rm -r, rm -f).",
+      "cat": "Affiche/concatène des fichiers.",
+      "less": "Affiche page par page.",
+      "head": "Affiche le début d’un fichier.",
+      "tail": "Affiche la fin d’un fichier (tail -f).",
+      "touch": "Crée un fichier / met à jour la date.",
+      "echo": "Affiche du texte (utile avec redirections).",
+      "grep": "Filtre des lignes par motif.",
+      "find": "Recherche de fichiers/dossiers.",
+      "sort": "Trie des lignes.",
+      "uniq": "Supprime doublons adjacents (après sort).",
+      "wc": "Compte lignes/mots/caractères (ex: wc -l).",
+      "cut": "Extrait des champs (ex: cut -d ':' -f1).",
+      "tee": "Duplique vers écran + fichier.",
+      "pipe |": "Envoie stdout vers stdin d’une autre commande.",
+      "redir >": "Redirige stdout en écrasant le fichier.",
+      "redir >>": "Redirige stdout en ajoutant à la fin.",
+      "stderr 2>": "Redirige les erreurs vers un fichier.",
+      "home ~": "Répertoire home de l’utilisateur.",
+      "parent ..": "Répertoire parent.",
+      "courant .": "Répertoire courant."
+    };
+
+    function renderGlossary(filterText="") {
+      const container = document.getElementById("glossaryList");
+      const q = filterText.trim().toLowerCase();
+
+      const entries = Object.entries(GLOSSARY)
+        .sort((a,b)=>a[0].localeCompare(b[0], "fr"))
+        .filter(([k,v]) => !q || k.toLowerCase().includes(q) || v.toLowerCase().includes(q));
+
+      container.innerHTML = "";
+      if (!entries.length){
+        const d = document.createElement("div");
+        d.className = "g-value";
+        d.textContent = "Aucun résultat.";
+        container.appendChild(d);
+        return;
+      }
+      for (const [k,v] of entries){
+        const item = document.createElement("div"); item.className="g-item";
+        const kk = document.createElement("div"); kk.className="g-key"; kk.textContent=k;
+        const vv = document.createElement("div"); vv.className="g-value"; vv.textContent=v;
+        item.appendChild(kk); item.appendChild(vv);
+        container.appendChild(item);
+      }
+    }
+
+    /* ===== Utils ===== */
+    function shuffle(arr) {
+      const a = arr.slice();
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+    function uniqPush(list, item){ if(!list.includes(item)) list.push(item); }
+    function clamp(n, min, max){ return Math.max(min, Math.min(max, n)); }
+    function normKey(s){ return String(s).trim().toLowerCase().replace(/\s+/g, " "); }
+
+    /* ===== Banque QCM (clean) ===== */
+    const QMAP = new Map();
+    function addQ(text, correct, wrongs, explain) {
+      const key = normKey(text);
+      if (QMAP.has(key)) return;
+
+      const choices = [];
+      uniqPush(choices, correct);
+      for (const w of wrongs) uniqPush(choices, w);
+
+      const fillers = ["Aucune de ces réponses", "Toutes ces réponses", "Cela dépend du contexte", "Non applicable"];
+      for (const f of fillers) if (choices.length < 4) uniqPush(choices, f);
+
+      const finalChoices = shuffle(choices.slice(0,4));
+      const answerIndex = finalChoices.indexOf(correct);
+
+      QMAP.set(key, { text, choices: finalChoices, answerIndex, explain: explain || "" });
+    }
+
+    const COMMANDS = [
+      ["pwd","Afficher le répertoire courant","pwd = print working directory."],
+      ["ls","Lister le contenu d’un répertoire","ls liste fichiers et dossiers."],
+      ["cd","Changer de répertoire","cd sert à naviguer (cd .., cd /etc, cd ~)."],
+      ["mkdir","Créer un répertoire","mkdir crée un dossier."],
+      ["rmdir","Supprimer un répertoire vide","rmdir ne supprime que si vide."],
+      ["cp","Copier des fichiers/dossiers","cp copie ; -r pour un dossier."],
+      ["mv","Déplacer / renommer","mv déplace et renomme."],
+      ["rm","Supprimer des fichiers/dossiers","rm supprime ; -r récursif ; -f force."],
+      ["touch","Créer un fichier / maj timestamp","touch crée le fichier s’il n’existe pas."],
+      ["cat","Afficher/concaténer des fichiers","cat affiche et concatène."],
+      ["less","Afficher page par page","less est pratique pour grands fichiers."],
+      ["head","Afficher le début d’un fichier","head affiche les premières lignes."],
+      ["tail","Afficher la fin d’un fichier","tail affiche les dernières lignes."],
+      ["grep","Filtrer par motif","grep trouve les lignes qui matchent un motif."],
+      ["find","Rechercher des fichiers","find cherche dans l’arborescence."],
+      ["sort","Trier des lignes","sort trie les lignes."],
+      ["uniq","Supprimer doublons adjacents","uniq retire doublons adjacents (souvent après sort)."],
+      ["wc","Compter lignes/mots/caractères","wc -l compte les lignes."],
+      ["cut","Extraire des champs/colonnes","cut -d -f extrait des champs."],
+      ["tee","Dupliquer sortie vers fichier","tee écrit + affiche."],
+      ["man","Afficher le manuel","man <cmd> montre la doc."],
+    ];
+
+    // Questions "définitions"
+    for (const [cmd, meaning, expl] of COMMANDS) {
+      addQ(`Que fait la commande ${cmd} ?`, meaning,
+        shuffle(COMMANDS.filter(x=>x[0]!==cmd).map(x=>x[1])).slice(0,3),
+        expl
+      );
+    }
+
+    // Options / redirections / pipes
+    addQ("Que fait le pipe (symbole |) ?", "Il envoie stdout vers stdin d’une autre commande",
+      ["Il écrase un fichier","Il redirige seulement les erreurs","Il met la commande en arrière-plan"],
+      "Le pipe connecte la sortie d’une commande à l’entrée d’une autre."
+    );
+    addQ("Que fait la redirection > ?", "Elle redirige stdout en écrasant le fichier",
+      ["Elle ajoute à la fin du fichier","Elle redirige stderr","Elle crée un pipe"],
+      "> écrase le fichier ; >> ajoute."
+    );
+    addQ("Que fait la redirection >> ?", "Elle redirige stdout en ajoutant à la fin",
+      ["Elle écrase le fichier","Elle redirige stderr","Elle supprime un fichier"],
+      ">> ajoute (append) au fichier."
+    );
+    addQ("Que fait 2> ?", "Elle redirige stderr (erreurs) vers un fichier",
+      ["Elle redirige stdout","Elle ajoute à la fin d’un fichier","Elle trie des lignes"],
+      "2> redirige le flux d’erreur."
+    );
+    addQ("Pour compter les lignes d’un fichier, on utilise :", "wc -l",
+      ["wc -w","ls -l","head -n"], "wc -l compte les lignes."
+    );
+    addQ("Pour trier puis enlever les doublons, on fait :", "sort fichier | uniq",
+      ["uniq fichier | sort","grep fichier | sort","cat fichier | sort"], "uniq retire les doublons adjacents, donc on trie avant."
+    );
+    addQ("Pour suivre un fichier de log en temps réel :", "tail -f",
+      ["head -f","cat -f","less -f"], "tail -f suit les nouvelles lignes ajoutées."
+    );
+    addQ("Pour rechercher récursivement un mot dans un dossier :", "grep -r",
+      ["find -r","ls -r","cut -r"], "grep -r cherche dans tous les fichiers d’un dossier."
+    );
+
+    const bank = Array.from(QMAP.values());
+
+    /* ===== UI quiz ===== */
+    const elQ = document.getElementById("questions");
+    const pillBank = document.getElementById("pillBank");
+    const pillCount = document.getElementById("pillCount");
+    const pillPage = document.getElementById("pillPage");
+    const pillAnswered = document.getElementById("pillAnswered");
+    const pillScore = document.getElementById("pillScore");
+    const resultBox = document.getElementById("resultBox");
+
+    const btnPrev = document.getElementById("btnPrev");
+    const btnNext = document.getElementById("btnNext");
+    const btnPrev2 = document.getElementById("btnPrev2");
+    const btnNext2 = document.getElementById("btnNext2");
+    const btnFinish = document.getElementById("btnFinish");
+    const btnNew = document.getElementById("btnNew");
+    const btnReset = document.getElementById("btnReset");
+
+    const QUIZ_SIZE = 50;
+    const pageSize = 10;
+    let questions = [];
+    let userAnswers = [];
+    let corrected = false;
+    let page = 0;
+
+    function answeredCount(){ return userAnswers.filter(x=>x!==null).length; }
+
+    function makeNewQuiz(){
+      const size = Math.min(QUIZ_SIZE, bank.length);
+      questions = shuffle(bank).slice(0, size);
+      userAnswers = new Array(questions.length).fill(null);
+      corrected = false;
+      page = 0;
+      resultBox.style.display="none";
+      pillScore.textContent="Score: —";
+      render();
+      window.scrollTo({top:0, behavior:"smooth"});
+    }
+
+    function resetAnswersOnly(){
+      userAnswers = new Array(questions.length).fill(null);
+      corrected = false;
+      resultBox.style.display="none";
+      pillScore.textContent="Score: —";
+      render();
+      window.scrollTo({top:0, behavior:"smooth"});
+    }
+
+    function render(){
+      const totalPages = Math.ceil(questions.length / pageSize);
+      pillCount.textContent = `Questions: ${questions.length}`;
+      pillPage.textContent = `Page: ${page+1}/${totalPages}`;
+      pillAnswered.textContent = `Répondu: ${answeredCount()}/${questions.length}`;
+
+      btnPrev.disabled = page===0;
+      btnPrev2.disabled = page===0;
+      btnNext.disabled = page>=totalPages-1;
+      btnNext2.disabled = page>=totalPages-1;
+
+      elQ.innerHTML="";
+      const start = page * pageSize;
+      const end = Math.min(start + pageSize, questions.length);
+
+      for(let i=start;i<end;i++){
+        const q = questions[i];
+        const card = document.createElement("div");
+        card.className = "card";
+        card.id = `q-${i}`;
+
+        if(corrected){
+          const ua = userAnswers[i];
+          if(ua===null) card.classList.add("unanswered");
+          else if(ua===q.answerIndex) card.classList.add("ok");
+          else card.classList.add("bad");
+        }
+
+        const h = document.createElement("h3");
+        h.className = "qtitle";
+        h.textContent = `${i+1}. ${q.text}`;
+        card.appendChild(h);
+
+        const choices = document.createElement("div");
+        choices.className = "choices";
+
+        q.choices.forEach((choiceText, idx)=>{
+          const lab = document.createElement("label");
+          lab.className = "choice";
+
+          const inp = document.createElement("input");
+          inp.type = "radio";
+          inp.name = `q${i}`;
+          inp.value = idx;
+          inp.checked = userAnswers[i]===idx;
+          inp.disabled = corrected;
+
+          /* ✅ Après correction : rendre visible la réponse choisie + la bonne réponse */
+          if (corrected) {
+            if (userAnswers[i] === idx) lab.classList.add("chosen");   // ce que tu as choisi
+            if (idx === q.answerIndex) lab.classList.add("correct");   // bonne réponse
+            if (userAnswers[i] !== null && userAnswers[i] === idx && idx !== q.answerIndex) {
+              lab.classList.add("wrong");                              // mauvaise sélection
+            }
+          }
+
+          inp.addEventListener("change", ()=>{
+            userAnswers[i]=idx;
+            pillAnswered.textContent = `Répondu: ${answeredCount()}/${questions.length}`;
+          });
+
+          const span = document.createElement("div");
+          span.textContent = choiceText;
+
+          lab.appendChild(inp);
+          lab.appendChild(span);
+          choices.appendChild(lab);
+        });
+
+        card.appendChild(choices);
+
+        if(corrected){
+          const ua = userAnswers[i];
+          const correctIdx = q.answerIndex;
+          if(ua===null || ua!==correctIdx){
+            const exp = document.createElement("div");
+            exp.className="explain";
+            const status = (ua===null) ? "⚠️ Question non répondue" : "❌ Mauvaise réponse";
+            const uaTxt = (ua===null) ? "—" : q.choices[ua];
+            exp.innerHTML =
+              `<div>${status}</div>`+
+              `<div><b>Ta réponse :</b> ${uaTxt}</div>`+
+              `<div><b>Bonne réponse :</b> ${q.choices[correctIdx]}</div>`+
+              `<div style="margin-top:6px;">💡 ${q.explain || "Pas d’explication disponible."}</div>`;
+            card.appendChild(exp);
+          }
+        }
+
+        elQ.appendChild(card);
+      }
+    }
+
+    function goToFirstWrong(){
+      for(let i=0;i<questions.length;i++){
+        if(userAnswers[i]===null || userAnswers[i]!==questions[i].answerIndex){
+          page = Math.floor(i/pageSize);
+          render();
+          const el = document.getElementById(`q-${i}`);
+          if(el) el.scrollIntoView({behavior:"smooth", block:"start"});
+          return;
+        }
+      }
+    }
+
+    function grade(){
+      corrected = true;
+      let correct=0, unanswered=0;
+      for(let i=0;i<questions.length;i++){
+        if(userAnswers[i]===null) unanswered++;
+        if(userAnswers[i]===questions[i].answerIndex) correct++;
+      }
+      const wrong = questions.length - correct - unanswered;
+      const score = Math.round((correct/questions.length)*1000)/10;
+
+      pillScore.textContent = `Score: ${correct}/${questions.length} (${score}%)`;
+      resultBox.style.display="block";
+      resultBox.innerHTML =
+        `<div style="font-size:16px;font-weight:800;margin-bottom:6px;">Résultat</div>`+
+        `<div>✅ Bonnes réponses : <b>${correct}</b></div>`+
+        `<div>❌ Erreurs : <b>${wrong}</b></div>`+
+        `<div>⚠️ Non répondu : <b>${unanswered}</b></div>`+
+        `<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">`+
+        `<button class="secondary" id="btnFirstWrong">Aller à la première erreur</button>`+
+        `<button class="secondary" id="btnTop">Revenir en haut</button>`+
+        `</div>`;
+
+      document.getElementById("btnFirstWrong").onclick = goToFirstWrong;
+      document.getElementById("btnTop").onclick = ()=>window.scrollTo({top:0, behavior:"smooth"});
+
+      render();
+      window.scrollTo({top:0, behavior:"smooth"});
+    }
+
+    btnPrev.onclick = ()=>{ page=clamp(page-1,0,9999); render(); window.scrollTo({top:0,behavior:"smooth"}); };
+    btnNext.onclick = ()=>{ page=clamp(page+1,0,9999); render(); window.scrollTo({top:0,behavior:"smooth"}); };
+    btnPrev2.onclick = btnPrev.onclick;
+    btnNext2.onclick = btnNext.onclick;
+
+    btnFinish.onclick = grade;
+    btnNew.onclick = makeNewQuiz;
+    btnReset.onclick = resetAnswersOnly;
+
+    // init
+    renderGlossary();
+    document.getElementById("glossarySearch").addEventListener("input", (e)=>renderGlossary(e.target.value));
+    makeNewQuiz();
+
+  } catch (err) {
+    showError(err);
+  }
+});
+</script>
+</body>
+</html>

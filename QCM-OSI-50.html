@@ -1,8 +1,9 @@
+<!doctype html>
 <html lang="fr">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>QCM OSI & TCP/IP — 50 questions aléatoires (Interactif + correction)</title>
+  <title>QCM OSI & TCP/IP — 50 aléatoires (Interactif + correction)</title>
   <style>
     body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 0; background:#0b1020; color:#e8ecff; }
     header { padding: 18px 16px; background: #111a33; border-bottom: 1px solid rgba(255,255,255,.08); position: sticky; top: 0; z-index: 10;}
@@ -361,4 +362,138 @@ function render() {
   const totalPages = Math.ceil(questions.length / pageSize);
 
   pillCount.textContent = `Questions: ${questions.length} (sur ${questionBank.length})`;
-  pillPage.textContent = `Page: ${page + 1}/${totalPa
+  pillPage.textContent = `Page: ${page + 1}/${totalPages}`;
+  pillAnswered.textContent = `Répondu: ${answeredCount()}/${questions.length}`;
+
+  btnPrev.disabled = page === 0;
+  btnPrev2.disabled = page === 0;
+  btnNext.disabled = page >= totalPages - 1;
+  btnNext2.disabled = page >= totalPages - 1;
+
+  elQ.innerHTML = "";
+  const start = page * pageSize;
+  const end = Math.min(start + pageSize, questions.length);
+
+  for (let i = start; i < end; i++) {
+    const q = questions[i];
+    const card = document.createElement("div");
+    card.className = "card";
+    card.id = `q-${i}`;
+
+    const h = document.createElement("h3");
+    h.className = "qtitle";
+    h.textContent = `${i+1}. ${q.text}`;
+    card.appendChild(h);
+
+    const choices = document.createElement("div");
+    choices.className = "choices";
+
+    q.choices.forEach((choiceText, idx) => {
+      const lab = document.createElement("label");
+      lab.className = "choice";
+
+      const inp = document.createElement("input");
+      inp.type = "radio";
+      inp.name = `q${i}`;
+      inp.value = idx;
+      inp.checked = userAnswers[i] === idx;
+      inp.disabled = corrected;
+
+      inp.addEventListener("change", () => {
+        userAnswers[i] = idx;
+        pillAnswered.textContent = `Répondu: ${answeredCount()}/${questions.length}`;
+      });
+
+      const span = document.createElement("div");
+      span.textContent = choiceText;
+
+      lab.appendChild(inp);
+      lab.appendChild(span);
+      choices.appendChild(lab);
+    });
+
+    card.appendChild(choices);
+
+    if (corrected) {
+      const ua = userAnswers[i];
+      const correctIdx = q.answerIndex;
+
+      if (ua === correctIdx) card.classList.add("ok");
+      else card.classList.add("bad");
+
+      const exp = document.createElement("div");
+      exp.className = "explain";
+      const uaTxt = (ua === null) ? "— (non répondu)" : q.choices[ua];
+      exp.innerHTML = `
+        <div><b>Ta réponse :</b> ${uaTxt}</div>
+        <div><b>Bonne réponse :</b> ${q.choices[correctIdx]}</div>
+        <div>${q.explain || ""}</div>
+      `;
+      card.appendChild(exp);
+    }
+
+    elQ.appendChild(card);
+  }
+}
+
+function goToFirstWrong() {
+  for (let i = 0; i < questions.length; i++) {
+    if (userAnswers[i] !== questions[i].answerIndex) {
+      page = Math.floor(i / pageSize);
+      render();
+      const el = document.getElementById(`q-${i}`);
+      if (el) el.scrollIntoView({behavior:"smooth", block:"start"});
+      return;
+    }
+  }
+}
+
+function grade() {
+  corrected = true;
+
+  let correct = 0;
+  let unanswered = 0;
+  for (let i = 0; i < questions.length; i++) {
+    if (userAnswers[i] === null) unanswered++;
+    if (userAnswers[i] === questions[i].answerIndex) correct++;
+  }
+  const score = Math.round((correct / questions.length) * 1000) / 10;
+
+  pillScore.textContent = `Score: ${correct}/${questions.length} (${score}%)`;
+
+  resultBox.style.display = "block";
+  resultBox.innerHTML = `
+    <div style="font-size:16px; font-weight:800; margin-bottom:6px;">Résultat</div>
+    <div>✅ Bonnes réponses : <b>${correct}</b></div>
+    <div>❌ Erreurs : <b>${questions.length - correct - unanswered}</b></div>
+    <div>⚠️ Non répondu : <b>${unanswered}</b></div>
+    <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap;">
+      <button class="secondary" id="btnFirstWrong">Aller à la première erreur</button>
+      <button class="secondary" id="btnTop">Revenir en haut</button>
+    </div>
+    <div class="small" style="margin-top:10px;">
+      Les questions sont encadrées en <b>vert</b> si correct, en <b>rouge</b> si incorrect.
+    </div>
+  `;
+
+  document.getElementById("btnFirstWrong").onclick = goToFirstWrong;
+  document.getElementById("btnTop").onclick = () => window.scrollTo({top:0, behavior:"smooth"});
+
+  render();
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+
+btnPrev.onclick = () => { page = clamp(page - 1, 0, 9999); render(); window.scrollTo({top:0, behavior:"smooth"}); };
+btnNext.onclick = () => { page = clamp(page + 1, 0, 9999); render(); window.scrollTo({top:0, behavior:"smooth"}); };
+btnPrev2.onclick = btnPrev.onclick;
+btnNext2.onclick = btnNext.onclick;
+
+btnFinish.onclick = grade;
+btnNew.onclick = makeNewQuiz;
+btnReset.onclick = resetAnswersOnly;
+
+// init
+makeNewQuiz();
+</script>
+</body>
+</html>

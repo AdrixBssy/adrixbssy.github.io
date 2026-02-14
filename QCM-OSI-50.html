@@ -1,150 +1,701 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>QCM OSI & TCP/IP — 50 aléatoires </title>
   <style>
-    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 0; background:#0b1020; color:#e8ecff; }
-    header { padding: 18px 16px; background: #111a33; border-bottom: 1px solid rgba(255,255,255,.08); position: sticky; top: 0; z-index: 10;}
-    header h1 { margin: 0 0 8px 0; font-size: 18px; }
-    header .row { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
-    button { background:#2b5cff; color:white; border:0; padding:10px 12px; border-radius:10px; font-weight:600; cursor:pointer; }
-    button.secondary { background:#26304f; }
-    button:disabled { opacity:.55; cursor:not-allowed; }
-    .wrap { max-width: 1000px; margin: 0 auto; padding: 16px; }
-    .meta { display:flex; flex-wrap:wrap; gap:10px; align-items:center; color:#b9c2ff; font-size: 14px; }
-    .pill { padding: 6px 10px; border-radius: 999px; background: rgba(255,255,255,.08); }
-    .card { background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.08); border-radius: 16px; padding: 14px; margin: 12px 0; }
-    .qtitle { margin:0 0 10px 0; font-size: 15px; }
-    .choices { display:grid; gap:8px; }
-    label.choice { display:flex; gap:10px; padding:10px; border-radius:12px; border:1px solid rgba(255,255,255,.10); background: rgba(0,0,0,.12); cursor:pointer; }
-    .footerbar { display:flex; justify-content:space-between; margin: 14px 0; }
-    .ok { outline: 2px solid rgba(0,255,150,.4); }
-    .bad { outline: 2px solid rgba(255,80,80,.4); }
-    .explain { font-size: 13px; margin-top: 8px; }
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:0;background:#0b1020;color:#e8ecff}
+    header{padding:18px 16px;background:#111a33;border-bottom:1px solid rgba(255,255,255,.08);position:sticky;top:0;z-index:10}
+    header h1{margin:0 0 8px 0;font-size:18px}
+    header .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+    .meta{display:flex;flex-wrap:wrap;gap:10px;align-items:center;color:#b9c2ff;font-size:14px}
+    .pill{padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.08)}
+    button{background:#2b5cff;color:#fff;border:0;padding:10px 12px;border-radius:10px;font-weight:600;cursor:pointer}
+    button.secondary{background:#26304f}
+    button:disabled{opacity:.55;cursor:not-allowed}
+    .wrap{max-width:1000px;margin:0 auto;padding:16px}
+    .card{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:14px;margin:12px 0}
+    .qtitle{margin:0 0 10px 0;font-size:15px;line-height:1.35}
+    .choices{display:grid;gap:8px}
+    label.choice{display:flex;gap:10px;align-items:flex-start;padding:10px;border-radius:12px;border:1px solid rgba(255,255,255,.10);background:rgba(0,0,0,.12);cursor:pointer}
+    label.choice:hover{border-color:rgba(43,92,255,.6)}
+    input[type="radio"]{margin-top:2px}
+    .footerbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin:14px 0}
+    .nav{display:flex;gap:8px;flex-wrap:wrap}
+    .result{padding:12px;border-radius:14px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.18)}
+    .ok{outline:2px solid rgba(0,255,150,.35)}
+    .bad{outline:2px solid rgba(255,80,80,.40)}
+    .explain{color:#cfd6ff;font-size:13px;margin-top:8px;opacity:.95}
+    .small{font-size:13px;color:#b9c2ff}
+    a{color:#9db4ff}
   </style>
 </head>
 <body>
-
 <header>
-  <h1>QCM OSI & TCP/IP (50 aléatoires)</h1>
-  <div class="meta">
-    <span class="pill" id="pillCount"></span>
+  <div class="row">
+    <h1>QCM OSI & TCP/IP — 50 aléatoires (banque 200 uniques)</h1>
+  </div>
+  <div class="row meta">
+    <span class="pill" id="pillBank">Banque: …</span>
+    <span class="pill" id="pillCount">Questions: …</span>
+    <span class="pill" id="pillPage">Page: …</span>
+    <span class="pill" id="pillAnswered">Répondu: …</span>
     <span class="pill" id="pillScore">Score: —</span>
   </div>
-  <div class="row">
+  <div class="row" style="margin-top:10px">
+    <button id="btnPrev" class="secondary">◀ Page précédente</button>
+    <button id="btnNext" class="secondary">Page suivante ▶</button>
     <button id="btnFinish">Corriger</button>
-    <button id="btnNew" class="secondary">Nouveau QCM</button>
+    <button id="btnNew" class="secondary">Nouveau QCM (50)</button>
     <button id="btnReset" class="secondary">Effacer réponses</button>
   </div>
 </header>
 
 <div class="wrap">
+  <div class="result" id="resultBox" style="display:none"></div>
   <div id="questions"></div>
-  <div id="resultBox"></div>
+
+  <div class="footerbar">
+    <div class="nav">
+      <button id="btnPrev2" class="secondary">◀ Page précédente</button>
+      <button id="btnNext2" class="secondary">Page suivante ▶</button>
+    </div>
+    <div class="small">Astuce : clique sur “Nouveau QCM (50)” pour un tirage différent, sans répétitions dans le même quiz.</div>
+  </div>
 </div>
 
 <script>
-// ===== Acronymes =====
+/* ===========================
+   Acronymes
+=========================== */
 const ACRONYMS = {
+  "OSI": "OSI (Open Systems Interconnection)",
+  "TCP/IP": "TCP/IP (Transmission Control Protocol / Internet Protocol)",
   "IP": "IP (Internet Protocol)",
+  "IPv4": "IPv4 (Internet Protocol version 4)",
+  "IPv6": "IPv6 (Internet Protocol version 6)",
   "TCP": "TCP (Transmission Control Protocol)",
   "UDP": "UDP (User Datagram Protocol)",
   "HTTP": "HTTP (HyperText Transfer Protocol)",
   "HTTPS": "HTTPS (HyperText Transfer Protocol Secure)",
   "DNS": "DNS (Domain Name System)",
-  "FTP": "FTP (File Transfer Protocol)",
-  "SSH": "SSH (Secure Shell)",
   "DHCP": "DHCP (Dynamic Host Configuration Protocol)",
   "ICMP": "ICMP (Internet Control Message Protocol)",
-  "ARP": "ARP (Address Resolution Protocol)"
+  "ARP": "ARP (Address Resolution Protocol)",
+  "NAT": "NAT (Network Address Translation)",
+  "CIDR": "CIDR (Classless Inter-Domain Routing)",
+  "MTU": "MTU (Maximum Transmission Unit)",
+  "TTL": "TTL (Time To Live)",
+  "MAC": "MAC (Media Access Control)",
+  "FTP": "FTP (File Transfer Protocol)",
+  "SSH": "SSH (Secure Shell)",
+  "SMTP": "SMTP (Simple Mail Transfer Protocol)",
+  "POP3": "POP3 (Post Office Protocol v3)",
+  "IMAP": "IMAP (Internet Message Access Protocol)",
+  "NTP": "NTP (Network Time Protocol)",
+  "SNMP": "SNMP (Simple Network Management Protocol)",
+  "LDAP": "LDAP (Lightweight Directory Access Protocol)",
+  "RDP": "RDP (Remote Desktop Protocol)",
+  "SIP": "SIP (Session Initiation Protocol)",
+  "SMB": "SMB (Server Message Block)",
+  "TLS": "TLS (Transport Layer Security)",
+  "VLAN": "VLAN (Virtual LAN)",
+  "STP": "STP (Spanning Tree Protocol)",
+  "QoS": "QoS (Quality of Service)"
 };
 
 function expandAcronyms(text) {
-  let result = text;
+  if (!text) return text;
+  let result = String(text);
+  // remplacements par "mots entiers"
   for (const key in ACRONYMS) {
-    result = result.replace(new RegExp(`\\b${key}\\b`, "g"), ACRONYMS[key]);
+    const re = new RegExp(`\\b${key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "g");
+    result = result.replace(re, ACRONYMS[key]);
   }
   return result;
 }
 
-// ===== Utils =====
-function shuffle(a){
-  return a.sort(()=>Math.random()-0.5);
+/* ===========================
+   Utilitaires
+=========================== */
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+function uniqPush(list, item) {
+  if (!list.includes(item)) list.push(item);
+}
+function clamp(n, min, max){ return Math.max(min, Math.min(max, n)); }
+function normKey(s){
+  return String(s).trim().toLowerCase().replace(/\s+/g, " ");
 }
 
-// ===== Banque =====
-const questionBank = [];
+/* ===========================
+   Banque de 200 questions uniques
+   (vérifiée automatiquement)
+=========================== */
 
-function addQ(text, correct, wrongs){
-  const choices = shuffle([correct, ...wrongs]).slice(0,4);
-  questionBank.push({
-    text: expandAcronyms(text),
-    choices: choices.map(expandAcronyms),
-    answer: correct
+const OSI = [
+  {layer: 7, name:"Application", pdu:"Données", examples:["HTTP","DNS","SMTP","FTP","SSH","DHCP"]},
+  {layer: 6, name:"Présentation", pdu:"Données", examples:["Chiffrement","Compression","Encodage","TLS"]},
+  {layer: 5, name:"Session", pdu:"Données", examples:["Gestion de session","Synchronisation","RPC"]},
+  {layer: 4, name:"Transport", pdu:"Segment (TCP) / Datagramme (UDP)", examples:["TCP","UDP"]},
+  {layer: 3, name:"Réseau", pdu:"Paquet", examples:["IP","ICMP","Routage","NAT"]},
+  {layer: 2, name:"Liaison de données", pdu:"Trame", examples:["Ethernet","Wi-Fi (802.11)","VLAN","STP","MAC","ARP"]},
+  {layer: 1, name:"Physique", pdu:"Bits", examples:["Câble","Fibre","Radio","Signal"]},
+];
+
+const TCPIP = [
+  {layer: 4, name:"Application", mapsOSI:"5-6-7", examples:["HTTP","DNS","SMTP","FTP","SSH","DHCP","TLS"]},
+  {layer: 3, name:"Transport", mapsOSI:"4", examples:["TCP","UDP"]},
+  {layer: 2, name:"Internet", mapsOSI:"3", examples:["IP","ICMP","Routage","NAT"]},
+  {layer: 1, name:"Accès réseau", mapsOSI:"1-2", examples:["Ethernet","Wi-Fi (802.11)","ARP","MAC","VLAN"]},
+];
+
+const PORTS = [
+  ["HTTP",80,"TCP"], ["HTTPS",443,"TCP"], ["DNS",53,"UDP/TCP"], ["DHCP (client)",68,"UDP"], ["DHCP (serveur)",67,"UDP"],
+  ["FTP (contrôle)",21,"TCP"], ["FTP (données)",20,"TCP"], ["SSH",22,"TCP"], ["Telnet",23,"TCP"],
+  ["SMTP",25,"TCP"], ["POP3",110,"TCP"], ["IMAP",143,"TCP"],
+  ["NTP",123,"UDP"], ["SNMP",161,"UDP"], ["SNMP Trap",162,"UDP"],
+  ["LDAP",389,"TCP/UDP"], ["LDAPS",636,"TCP"],
+  ["RDP",3389,"TCP/UDP"], ["SIP",5060,"UDP/TCP"], ["SIPS",5061,"TCP"],
+  ["TFTP",69,"UDP"], ["SMB",445,"TCP"], ["Kerberos",88,"TCP/UDP"],
+  ["MySQL",3306,"TCP"], ["PostgreSQL",5432,"TCP"], ["MongoDB",27017,"TCP"],
+  ["HTTP Alt",8080,"TCP"], ["HTTPS Alt",8443,"TCP"],
+  ["Syslog",514,"UDP"], ["BGP",179,"TCP"], ["OSPF",89,"IP"], ["RIP",520,"UDP"],
+  ["IKE",500,"UDP"], ["IPsec NAT-T",4500,"UDP"], ["L2TP",1701,"UDP"], ["PPTP",1723,"TCP"],
+  ["SFTP",22,"TCP"], ["FTPS",990,"TCP"], ["SMTPS",465,"TCP"], ["Submission",587,"TCP"],
+  ["DoT",853,"TCP"], ["DoH",443,"TCP"], ["WireGuard",51820,"UDP"]
+];
+
+const PROTO_LAYER = [
+  ["IP","Réseau (OSI 3) / Internet (TCP/IP)"],
+  ["ICMP","Réseau (OSI 3) / Internet (TCP/IP)"],
+  ["ARP","Liaison de données (OSI 2) (souvent entre L2/L3)"],
+  ["TCP","Transport (OSI 4) / Transport (TCP/IP)"],
+  ["UDP","Transport (OSI 4) / Transport (TCP/IP)"],
+  ["HTTP","Application (OSI 7) / Application (TCP/IP)"],
+  ["DNS","Application (OSI 7) / Application (TCP/IP)"],
+  ["DHCP","Application (OSI 7) / Application (TCP/IP)"],
+  ["TLS","Présentation/Application (OSI 6/7) (selon représentation)"],
+  ["Ethernet","Liaison/Physique (OSI 2/1) / Accès réseau"],
+  ["VLAN","Liaison de données (OSI 2)"],
+  ["STP","Liaison de données (OSI 2)"],
+  ["NAT","Réseau (OSI 3) (fonction)"],
+];
+
+const DEVICES = [
+  ["Hub","Physique (OSI 1)"],
+  ["Répéteur","Physique (OSI 1)"],
+  ["Switch (commutateur)","Liaison de données (OSI 2)"],
+  ["Bridge (pont)","Liaison de données (OSI 2)"],
+  ["Routeur","Réseau (OSI 3)"],
+  ["Point d’accès Wi-Fi","Liaison de données (OSI 2)"],
+  ["Pare-feu (filtrage L3/L4)","Réseau/Transport (OSI 3/4)"],
+  ["Proxy applicatif","Application (OSI 7)"],
+];
+
+const FACTS_TF = [
+  ["TCP est orienté connexion", "Vrai", "TCP établit une connexion logique avant l’échange de données."],
+  ["UDP est orienté connexion", "Faux", "UDP est sans connexion (connectionless)."],
+  ["Le handshake TCP standard est en 3 temps (SYN, SYN-ACK, ACK)", "Vrai", "C’est le 3-way handshake."],
+  ["IPv4 utilise des adresses sur 32 bits", "Vrai", "32 bits → ~4,29 milliards d’adresses."],
+  ["IPv6 utilise des adresses sur 128 bits", "Vrai", "128 bits → espace d’adressage beaucoup plus grand."],
+  ["Le TTL limite la durée de vie d’un paquet", "Vrai", "Il diminue à chaque routeur jusqu’à 0."],
+  ["ICMP sert notamment aux messages d’erreur et au diagnostic (ping)", "Vrai", "ICMP transporte des messages de contrôle/erreur."],
+  ["DNS sert à résoudre des noms de domaine en adresses IP", "Vrai", "Résolution de noms."],
+  ["DHCP attribue automatiquement une configuration IP", "Vrai", "IP/masque/passerelle/DNS, etc."],
+  ["NAT permet souvent de partager une adresse IPv4 publique", "Vrai", "Traduction d’adresses privées vers publique."],
+  ["Une trame Ethernet contient des adresses MAC source et destination", "Vrai", "MAC au niveau L2."],
+  ["Un routeur choisit le chemin à la couche Réseau", "Vrai", "Décision de routage en OSI 3."],
+  ["Un switch opère principalement à la couche Transport", "Faux", "Un switch classique opère surtout en OSI 2."],
+  ["TLS chiffre les échanges applicatifs", "Vrai", "TLS apporte chiffrement + intégrité + authentification (selon config)."],
+  ["MTU signifie Maximum Transmission Unit", "Vrai", "Taille maximale de paquet (souvent au niveau lien)."],
+  ["CIDR remplace les classes A/B/C par des préfixes /n", "Vrai", "Notation /24, /16, etc."],
+];
+
+const IPV4_PRIVATE = [
+  ["10.0.0.0/8","Privée"],
+  ["172.16.0.0/12","Privée"],
+  ["192.168.0.0/16","Privée"],
+];
+
+const DNS_RECORDS = [
+  ["A","Adresse IPv4"],
+  ["AAAA","Adresse IPv6"],
+  ["CNAME","Alias"],
+  ["MX","Serveur mail"],
+  ["NS","Serveur DNS autoritaire"],
+  ["TXT","Texte/validation (SPF, etc.)"],
+  ["PTR","Résolution inverse"],
+  ["SRV","Service (port/poids/priorité)"]
+];
+
+const TCP_FLAGS = [
+  ["SYN","Démarrer une connexion"],
+  ["ACK","Accusé de réception"],
+  ["FIN","Fin de connexion (fermeture propre)"],
+  ["RST","Réinitialiser la connexion"],
+  ["PSH","Pousser les données vers l’application"],
+  ["URG","Données urgentes (rare)"],
+];
+
+const DHCP_STEPS = [
+  ["Discover","Découverte client → serveurs"],
+  ["Offer","Proposition de bail"],
+  ["Request","Demande du bail choisi"],
+  ["ACK","Confirmation du bail"],
+];
+
+const SUBNET_QUICK = [
+  ["/24","255.255.255.0"],
+  ["/16","255.255.0.0"],
+  ["/8","255.0.0.0"],
+  ["/30","255.255.255.252"],
+  ["/26","255.255.255.192"],
+  ["/27","255.255.255.224"],
+  ["/28","255.255.255.240"],
+];
+
+const VLAN_FACTS = [
+  ["Un VLAN segmente un réseau L2 en domaines de broadcast séparés", "Vrai"],
+  ["Une liaison 'trunk' transporte plusieurs VLANs", "Vrai"],
+  ["STP évite les boucles L2 dans un réseau commuté", "Vrai"],
+];
+
+const QMAP = new Map(); // clé -> question
+
+function addQ(text, correct, wrongs, explain) {
+  const t = expandAcronyms(text);
+  const key = normKey(t);
+  if (QMAP.has(key)) return; // déduplication stricte par texte
+
+  const choices = [];
+  uniqPush(choices, expandAcronyms(correct));
+  for (const w of wrongs) uniqPush(choices, expandAcronyms(w));
+
+  const fillers = ["Aucune de ces réponses", "Toutes ces réponses", "Cela dépend du contexte", "Non applicable"];
+  for (const f of fillers) if (choices.length < 4) uniqPush(choices, f);
+
+  const finalChoices = shuffle(choices.slice(0,4));
+  const answerIndex = finalChoices.indexOf(expandAcronyms(correct));
+
+  QMAP.set(key, {
+    id: QMAP.size + 1,
+    text: t,
+    choices: finalChoices,
+    answerIndex,
+    explain: expandAcronyms(explain || "")
   });
 }
 
-// ===== Génération simple =====
-addQ("Quel protocole traduit IP en MAC ?", "ARP", ["DNS","TCP","UDP"]);
-addQ("Combien de couches OSI ?", "7", ["4","5","6"]);
-addQ("Quel protocole web ?", "HTTP", ["FTP","DNS","ARP"]);
-addQ("Quel protocole fiable ?", "TCP", ["UDP","IP","ICMP"]);
+function buildBank() {
+  // OSI / TCP-IP fondations
+  addQ("Combien de couches comporte le modèle OSI ?", "7", ["4","5","8"], "Le modèle OSI comporte 7 couches.");
+  addQ("Combien de couches comporte le modèle TCP/IP (version 4 couches) ?", "4", ["3","5","7"], "Le modèle TCP/IP est souvent présenté en 4 couches.");
 
-// duplication pour atteindre 200
-while(questionBank.length < 200){
-  const base = questionBank[questionBank.length % 4];
-  questionBank.push(base);
+  for (const l of OSI) {
+    addQ(`Dans le modèle OSI, quelle est la couche ${l.layer} ?`, l.name,
+      shuffle(OSI.filter(x=>x.layer!==l.layer).map(x=>x.name)).slice(0,3),
+      `La couche ${l.layer} OSI s'appelle ${l.name}.`
+    );
+    addQ(`Quel est le PDU typique de la couche OSI ${l.layer} (${l.name}) ?`, l.pdu,
+      shuffle(["Bits","Trame","Paquet","Segment (TCP) / Datagramme (UDP)"].filter(x=>x!==l.pdu)).slice(0,3),
+      `PDU typique : ${l.name} → ${l.pdu}.`
+    );
+    // 2 exemples par couche (pour augmenter l’unicité)
+    for (const ex of l.examples.slice(0,2)) {
+      addQ(`À quelle couche OSI associe-t-on le plus souvent ${ex} ?`, l.name,
+        shuffle(OSI.filter(x=>x.layer!==l.layer).map(x=>x.name)).slice(0,3),
+        `${ex} est souvent rattaché à la couche ${l.name} (selon les cours).`
+      );
+    }
+  }
+
+  for (const l of TCPIP) {
+    addQ(`Dans le modèle TCP/IP (4 couches), quelle est la couche ${l.layer} ?`, l.name,
+      shuffle(TCPIP.filter(x=>x.layer!==l.layer).map(x=>x.name)).slice(0,3),
+      `TCP/IP couche ${l.layer} : ${l.name}.`
+    );
+    addQ(`La couche TCP/IP ${l.name} correspond à quelles couches OSI ?`, l.mapsOSI,
+      shuffle(TCPIP.filter(x=>x.name!==l.name).map(x=>x.mapsOSI)).slice(0,3),
+      `Correspondance classique : ${l.name} ↔ OSI ${l.mapsOSI}.`
+    );
+    for (const ex of l.examples.slice(0,2)) {
+      addQ(`Dans TCP/IP, ${ex} appartient le plus souvent à quelle couche ?`, l.name,
+        shuffle(TCPIP.filter(x=>x.name!==l.name).map(x=>x.name)).slice(0,3),
+        `${ex} est généralement rattaché à la couche ${l.name} en TCP/IP.`
+      );
+    }
+  }
+
+  // Ports
+  for (const [svc, port, trans] of PORTS) {
+    addQ(`Quel est le port le plus couramment associé à ${svc} ?`, String(port),
+      shuffle(PORTS.filter(x=>x[0]!==svc).slice(0,12).map(x=>String(x[1]))).slice(0,3),
+      `${svc} est classiquement associé au port ${port}.`
+    );
+    addQ(`${svc} utilise le plus souvent quel type de transport ?`, trans,
+      shuffle(["TCP","UDP","UDP/TCP","IP"].filter(x=>x!==trans)).slice(0,3),
+      `Selon les usages courants : ${svc} → ${trans}.`
+    );
+  }
+
+  // Protocole -> couche
+  for (const [proto, layerText] of PROTO_LAYER) {
+    addQ(`À quelle couche se rattache principalement ${proto} ?`, layerText,
+      shuffle(PROTO_LAYER.filter(x=>x[0]!==proto).map(x=>x[1])).slice(0,3),
+      `${proto} : ${layerText}.`
+    );
+  }
+
+  // Équipements
+  for (const [dev, layer] of DEVICES) {
+    addQ(`À quelle couche OSI associe-t-on le plus souvent ${dev} ?`, layer,
+      shuffle(DEVICES.filter(x=>x[0]!==dev).map(x=>x[1])).slice(0,3),
+      `${dev} est classiquement associé à ${layer}.`
+    );
+  }
+
+  // Vrai/Faux -> QCM
+  for (const [stmt, truth, expl] of FACTS_TF) {
+    addQ(`${stmt}.`, truth, truth==="Vrai" ? ["Faux","Ça dépend","Non applicable"] : ["Vrai","Ça dépend","Non applicable"],
+      expl || `Réponse : ${truth}.`
+    );
+  }
+
+  // IPv4 privées
+  for (const [range, kind] of IPV4_PRIVATE) {
+    addQ(`Le réseau ${range} est une plage d’adresses :`, kind, ["Publique","Multicast","Loopback"],
+      `Les plages privées IPv4 incluent notamment 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16.`
+    );
+  }
+
+  // Masques rapides
+  for (const [pref, mask] of SUBNET_QUICK) {
+    addQ(`Quel masque correspond au préfixe IPv4 ${pref} ?`, mask,
+      shuffle(SUBNET_QUICK.filter(x=>x[0]!==pref).map(x=>x[1])).slice(0,3),
+      `Correspondance courante : ${pref} ↔ ${mask}.`
+    );
+    addQ(`Quel préfixe CIDR correspond au masque ${mask} ?`, pref,
+      shuffle(SUBNET_QUICK.filter(x=>x[1]!==mask).map(x=>x[0])).slice(0,3),
+      `Correspondance courante : ${mask} ↔ ${pref}.`
+    );
+  }
+
+  // DNS records
+  for (const [type, meaning] of DNS_RECORDS) {
+    addQ(`Dans DNS, un enregistrement de type ${type} correspond à :`, meaning,
+      shuffle(DNS_RECORDS.filter(x=>x[0]!==type).map(x=>x[1])).slice(0,3),
+      `Type DNS ${type} : ${meaning}.`
+    );
+  }
+
+  // DHCP étapes (ordre)
+  for (let i = 0; i < DHCP_STEPS.length; i++) {
+    const [step, meaning] = DHCP_STEPS[i];
+    const wrong = shuffle(DHCP_STEPS.filter(x=>x[0]!==step).map(x=>x[0])).slice(0,3);
+    addQ(`Dans DHCP, que signifie l’étape ${step} ?`, meaning,
+      shuffle(DHCP_STEPS.filter(x=>x[1]!==meaning).map(x=>x[1])).slice(0,3),
+      `${step} : ${meaning}.`
+    );
+    addQ(`Dans DHCP, quelle est l’étape numéro ${i+1} (ordre classique DORA) ?`, step,
+      wrong,
+      `Ordre classique : Discover → Offer → Request → ACK.`
+    );
+  }
+
+  // TCP flags
+  for (const [flag, role] of TCP_FLAGS) {
+    addQ(`À quoi sert principalement le drapeau TCP ${flag} ?`, role,
+      shuffle(TCP_FLAGS.filter(x=>x[0]!==flag).map(x=>x[1])).slice(0,3),
+      `TCP ${flag} : ${role}.`
+    );
+  }
+
+  // VLAN / STP
+  for (const [stmt, truth] of VLAN_FACTS) {
+    addQ(`${stmt}.`, truth, truth==="Vrai" ? ["Faux","Ça dépend","Non applicable"] : ["Vrai","Ça dépend","Non applicable"],
+      `Réponse : ${truth}.`
+    );
+  }
+
+  // Questions “mix” supplémentaires (uniques)
+  const MIX = [
+    ["Quelle couche OSI est responsable du routage ?", "Réseau", ["Transport","Session","Liaison de données"], "Le routage est en OSI 3."],
+    ["Quel protocole traduit généralement IP → MAC sur un LAN ?", "ARP", ["DNS","ICMP","TCP"], "ARP résout IP vers MAC sur un réseau local."],
+    ["Dans OSI, la couche Physique transporte surtout :", "Bits", ["Trames","Paquets","Segments"], "La couche 1 transporte des bits."],
+    ["Dans OSI, la couche Liaison manipule surtout :", "Trames", ["Bits","Paquets","Segments"], "La couche 2 manipule des trames."],
+    ["Dans OSI, la couche Réseau manipule surtout :", "Paquets", ["Bits","Trames","Segments"], "La couche 3 manipule des paquets."],
+    ["Dans OSI, la couche Transport manipule surtout :", "Segments (TCP) / Datagrammes (UDP)", ["Bits","Trames","Paquets"], "La couche 4 transporte segments/datagrammes."],
+    ["Quel est le rôle principal d’un switch classique ?", "Commuter des trames via les adresses MAC", ["Router des paquets IP","Chiffrer via TLS","Attribuer des IP via DHCP"], "Switch L2 : MAC/trames."],
+    ["Quel est le rôle principal d’un routeur ?", "Acheminer des paquets entre réseaux IP", ["Commuter des trames Ethernet","Coder/compresser les données","Créer des sessions applicatives"], "Routeur OSI 3."],
+    ["Quel protocole est le plus souvent utilisé pour le web en clair ?", "HTTP", ["SSH","SMB","SNMP"], "HTTP est le protocole web en clair."],
+    ["Quel protocole fournit un contrôle de fiabilité (ACK/retransmission) ?", "TCP", ["UDP","ICMP","ARP"], "TCP assure fiabilité/ordre."],
+    ["Le port 443 est associé à :", "HTTPS", ["HTTP","SSH","DNS"], "HTTPS : 443."],
+    ["Le port 53 est associé à :", "DNS", ["DHCP","HTTP","SMB"], "DNS : 53."],
+    ["La résolution inverse DNS est généralement réalisée via :", "PTR", ["MX","CNAME","SRV"], "PTR sert à la résolution inverse."],
+    ["Quel champ IP diminue à chaque routeur (IPv4) ?", "TTL", ["MTU","MAC","VLAN"], "TTL diminue à chaque saut."],
+    ["Quelle technologie segmente L2 en plusieurs domaines de broadcast ?", "VLAN", ["NAT","ICMP","TLS"], "VLAN segmente en domaines de broadcast."],
+    ["Quel protocole évite les boucles L2 dans un réseau commuté ?", "STP", ["DNS","DHCP","SIP"], "STP empêche les boucles au niveau 2."],
+    ["Quelle est la fonction typique de NAT ?", "Traduire des adresses IP", ["Résoudre des noms","Transporter des trames","Gérer les sessions"], "NAT traduit des adresses."],
+    ["Quel protocole est typiquement utilisé pour attribuer IP/masque/passerelle automatiquement ?", "DHCP", ["DNS","ICMP","ARP"], "DHCP fournit la config automatiquement."],
+    ["Quel protocole sert à diagnostiquer (ping) ?", "ICMP", ["TCP","ARP","SMTP"], "Ping utilise ICMP (echo)." ],
+    ["Le port 22 correspond à :", "SSH", ["FTP","Telnet","SMTP"], "SSH : 22."],
+  ];
+
+  for (const [t,c,w,e] of MIX) addQ(t,c,w,e);
+
+  // S’assurer d’avoir ≥ 200 uniques, sinon ajouter d’autres variantes uniques
+  // Variantes générées: "Quel protocole appartient à la couche X" + "Quel couple OSI->PDU"
+  const extraProtos = ["HTTP","HTTPS","DNS","DHCP","ICMP","ARP","TCP","UDP","SMTP","FTP","SSH","NTP","SNMP","LDAP","SMB","SIP","TLS","VLAN","STP","NAT"];
+  const osiNameToLayer = new Map(OSI.map(x=>[x.name,x.layer]));
+  const protoToLikelyOSI = {
+    "HTTP":"Application","HTTPS":"Application","DNS":"Application","DHCP":"Application","SMTP":"Application","FTP":"Application","SSH":"Application",
+    "TCP":"Transport","UDP":"Transport",
+    "IP":"Réseau","ICMP":"Réseau","NAT":"Réseau",
+    "ARP":"Liaison de données","Ethernet":"Liaison de données","VLAN":"Liaison de données","STP":"Liaison de données",
+    "TLS":"Présentation"
+  };
+
+  for (const p of extraProtos) {
+    const layer = protoToLikelyOSI[p] || "Application";
+    addQ(`Dans le modèle OSI, ${p} est généralement associé à quelle couche ?`, layer,
+      shuffle(OSI.filter(x=>x.name!==layer).map(x=>x.name)).slice(0,3),
+      `${p} est généralement rattaché à la couche ${layer} dans un cours OSI.`
+    );
+    addQ(`Quelle couche OSI porte le numéro ${osiNameToLayer.get(layer) || 7} ?`, layer,
+      shuffle(OSI.filter(x=>x.name!==layer).map(x=>x.name)).slice(0,3),
+      `La couche ${layer} correspond à OSI ${osiNameToLayer.get(layer) || "?"}.`
+    );
+  }
 }
 
-// ===== Quiz =====
-let questions = [];
-let answers = [];
+buildBank();
 
-function newQuiz(){
-  questions = shuffle([...questionBank]).slice(0,50);
-  answers = new Array(50).fill(null);
+// Transforme la Map en tableau, puis vérifie unicité + taille
+const questionBank = Array.from(QMAP.values());
+
+// Vérification “200 questions différentes”
+(function verify200Unique() {
+  const seen = new Set();
+  for (const q of questionBank) {
+    const k = normKey(q.text);
+    if (seen.has(k)) {
+      console.error("Doublon détecté :", q.text);
+      throw new Error("Doublon détecté dans la banque (texte identique).");
+    }
+    seen.add(k);
+  }
+  if (questionBank.length < 200) {
+    console.error("Banque trop petite :", questionBank.length);
+    throw new Error("La banque n'a pas atteint 200 questions uniques.");
+  }
+})();
+
+// On garde exactement 200 uniques (les 200 premières uniques de la banque)
+const BANK_SIZE = 200;
+const bank200 = questionBank.slice(0, BANK_SIZE);
+
+/* ===========================
+   Quiz actif: 50 aléatoires sans répétition
+=========================== */
+let questions = [];        // quiz actif (50)
+const QUIZ_SIZE = 50;
+
+const pageSize = 10; // 50 questions => 5 pages
+let page = 0;
+let userAnswers = [];
+let corrected = false;
+
+const elQ = document.getElementById("questions");
+const pillBank = document.getElementById("pillBank");
+const pillCount = document.getElementById("pillCount");
+const pillPage = document.getElementById("pillPage");
+const pillAnswered = document.getElementById("pillAnswered");
+const pillScore = document.getElementById("pillScore");
+const resultBox = document.getElementById("resultBox");
+
+const btnPrev = document.getElementById("btnPrev");
+const btnNext = document.getElementById("btnNext");
+const btnPrev2 = document.getElementById("btnPrev2");
+const btnNext2 = document.getElementById("btnNext2");
+const btnFinish = document.getElementById("btnFinish");
+const btnNew = document.getElementById("btnNew");
+const btnReset = document.getElementById("btnReset");
+
+function answeredCount() {
+  return userAnswers.filter(x => x !== null).length;
+}
+
+function makeNewQuiz() {
+  // bank200 est déjà unique par texte.
+  const picked = shuffle(bank200).slice(0, QUIZ_SIZE);
+  questions = picked;
+
+  userAnswers = new Array(questions.length).fill(null);
+  corrected = false;
+  page = 0;
+  resultBox.style.display = "none";
+  pillScore.textContent = "Score: —";
+
   render();
+  window.scrollTo({top:0, behavior:"smooth"});
 }
 
-function render(){
-  const container = document.getElementById("questions");
-  container.innerHTML = "";
+function resetAnswersOnly() {
+  userAnswers = new Array(questions.length).fill(null);
+  corrected = false;
+  resultBox.style.display = "none";
+  pillScore.textContent = "Score: —";
+  render();
+  window.scrollTo({top:0, behavior:"smooth"});
+}
 
-  questions.forEach((q,i)=>{
-    const div = document.createElement("div");
-    div.className="card";
-    div.innerHTML = `<b>${i+1}. ${q.text}</b>`;
+function render() {
+  const totalPages = Math.ceil(questions.length / pageSize);
 
-    q.choices.forEach(c=>{
-      const label = document.createElement("label");
-      label.className="choice";
-      label.innerHTML = `<input type="radio" name="q${i}"> ${c}`;
-      label.onclick = ()=>answers[i]=c;
-      div.appendChild(label);
+  pillBank.textContent = `Banque: ${bank200.length} uniques`;
+  pillCount.textContent = `Questions: ${questions.length}`;
+  pillPage.textContent = `Page: ${page + 1}/${totalPages}`;
+  pillAnswered.textContent = `Répondu: ${answeredCount()}/${questions.length}`;
+
+  btnPrev.disabled = page === 0;
+  btnPrev2.disabled = page === 0;
+  btnNext.disabled = page >= totalPages - 1;
+  btnNext2.disabled = page >= totalPages - 1;
+
+  elQ.innerHTML = "";
+  const start = page * pageSize;
+  const end = Math.min(start + pageSize, questions.length);
+
+  for (let i = start; i < end; i++) {
+    const q = questions[i];
+    const card = document.createElement("div");
+    card.className = "card";
+    card.id = `q-${i}`;
+
+    const h = document.createElement("h3");
+    h.className = "qtitle";
+    h.textContent = `${i+1}. ${q.text}`;
+    card.appendChild(h);
+
+    const choices = document.createElement("div");
+    choices.className = "choices";
+
+    q.choices.forEach((choiceText, idx) => {
+      const lab = document.createElement("label");
+      lab.className = "choice";
+
+      const inp = document.createElement("input");
+      inp.type = "radio";
+      inp.name = `q${i}`;
+      inp.value = idx;
+      inp.checked = userAnswers[i] === idx;
+      inp.disabled = corrected;
+
+      inp.addEventListener("change", () => {
+        userAnswers[i] = idx;
+        pillAnswered.textContent = `Répondu: ${answeredCount()}/${questions.length}`;
+      });
+
+      const span = document.createElement("div");
+      span.textContent = choiceText;
+
+      lab.appendChild(inp);
+      lab.appendChild(span);
+      choices.appendChild(lab);
     });
 
-    container.appendChild(div);
-  });
+    card.appendChild(choices);
 
-  document.getElementById("pillCount").textContent = "Questions: 50";
+    if (corrected) {
+      const ua = userAnswers[i];
+      const correctIdx = q.answerIndex;
+
+      if (ua === correctIdx) card.classList.add("ok");
+      else card.classList.add("bad");
+
+      const exp = document.createElement("div");
+      exp.className = "explain";
+      const uaTxt = (ua === null) ? "— (non répondu)" : q.choices[ua];
+      exp.innerHTML = `
+        <div><b>Ta réponse :</b> ${uaTxt}</div>
+        <div><b>Bonne réponse :</b> ${q.choices[correctIdx]}</div>
+        <div>${q.explain || ""}</div>
+      `;
+      card.appendChild(exp);
+    }
+
+    elQ.appendChild(card);
+  }
 }
 
-// ===== Correction =====
-document.getElementById("btnFinish").onclick = ()=>{
-  let score=0;
-  questions.forEach((q,i)=>{
-    if(answers[i]===q.answer) score++;
-  });
-  document.getElementById("pillScore").textContent = `Score: ${score}/50`;
-};
+function goToFirstWrong() {
+  for (let i = 0; i < questions.length; i++) {
+    if (userAnswers[i] !== questions[i].answerIndex) {
+      page = Math.floor(i / pageSize);
+      render();
+      const el = document.getElementById(`q-${i}`);
+      if (el) el.scrollIntoView({behavior:"smooth", block:"start"});
+      return;
+    }
+  }
+}
 
-document.getElementById("btnNew").onclick = newQuiz;
-document.getElementById("btnReset").onclick = ()=>{answers.fill(null); render();};
+function grade() {
+  corrected = true;
+
+  let correct = 0;
+  let unanswered = 0;
+  for (let i = 0; i < questions.length; i++) {
+    if (userAnswers[i] === null) unanswered++;
+    if (userAnswers[i] === questions[i].answerIndex) correct++;
+  }
+  const score = Math.round((correct / questions.length) * 1000) / 10;
+
+  pillScore.textContent = `Score: ${correct}/${questions.length} (${score}%)`;
+
+  resultBox.style.display = "block";
+  resultBox.innerHTML = `
+    <div style="font-size:16px; font-weight:800; margin-bottom:6px;">Résultat</div>
+    <div>✅ Bonnes réponses : <b>${correct}</b></div>
+    <div>❌ Erreurs : <b>${questions.length - correct - unanswered}</b></div>
+    <div>⚠️ Non répondu : <b>${unanswered}</b></div>
+    <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap;">
+      <button class="secondary" id="btnFirstWrong">Aller à la première erreur</button>
+      <button class="secondary" id="btnTop">Revenir en haut</button>
+    </div>
+    <div class="small" style="margin-top:10px;">
+      Les questions sont encadrées en <b>vert</b> si correct, en <b>rouge</b> si incorrect.
+    </div>
+  `;
+
+  document.getElementById("btnFirstWrong").onclick = goToFirstWrong;
+  document.getElementById("btnTop").onclick = () => window.scrollTo({top:0, behavior:"smooth"});
+
+  render();
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+
+btnPrev.onclick = () => { page = clamp(page - 1, 0, 9999); render(); window.scrollTo({top:0, behavior:"smooth"}); };
+btnNext.onclick = () => { page = clamp(page + 1, 0, 9999); render(); window.scrollTo({top:0, behavior:"smooth"}); };
+btnPrev2.onclick = btnPrev.onclick;
+btnNext2.onclick = btnNext.onclick;
+
+btnFinish.onclick = grade;
+btnNew.onclick = makeNewQuiz;
+btnReset.onclick = resetAnswersOnly;
 
 // init
-newQuiz();
-</script>
+makeNewQuiz();
 
+// Petit log utile
+console.log("Banque générée:", bank200.length, "questions uniques.");
+</script>
 </body>
 </html>

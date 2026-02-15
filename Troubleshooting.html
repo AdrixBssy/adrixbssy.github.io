@@ -1,0 +1,649 @@
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>QCM Troubleshooting </title>
+
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:0;background:#0b1020;color:#e8ecff}
+    header{padding:18px 16px;background:#111a33;border-bottom:1px solid rgba(255,255,255,.08);position:sticky;top:0;z-index:10}
+    header h1{margin:0 0 8px 0;font-size:18px}
+    header .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+    .meta{display:flex;flex-wrap:wrap;gap:10px;align-items:center;color:#b9c2ff;font-size:14px}
+    .pill{padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.08)}
+    button{background:#2b5cff;color:#fff;border:0;padding:10px 12px;border-radius:10px;font-weight:600;cursor:pointer}
+    button.secondary{background:#26304f}
+    button:disabled{opacity:.55;cursor:not-allowed}
+
+    /* Glossaire fixe à gauche */
+    #glossaryBox{
+      position:fixed; left:10px; top:140px; width:260px; max-height:72vh; overflow:auto;
+      background: rgba(157, 180, 255, 0.10);
+      border: 1px solid rgba(157, 180, 255, 0.22);
+      border-radius:14px; padding:12px;
+      backdrop-filter: blur(6px);
+      z-index:5;
+    }
+    #glossaryBox h3{margin:0 0 10px 0;font-size:14px;color:#cfd6ff}
+    #glossarySearch{
+      width:100%; box-sizing:border-box; padding:8px 10px; border-radius:10px;
+      border:1px solid rgba(157, 180, 255, 0.18);
+      background:rgba(0,0,0,.20); color:#e8ecff; outline:none; margin-bottom:10px; font-size:13px;
+    }
+    .g-item{padding:8px;border-radius:12px;border:1px solid rgba(157, 180, 255, 0.14);background:rgba(157, 180, 255, 0.06);margin-bottom:8px}
+    .g-key{font-weight:800;color:#cfe0ff}
+    .g-value{color:#dbe3ff;font-size:12px;line-height:1.35;margin-top:3px;opacity:.95}
+
+    .wrap{max-width:1000px;margin:0 auto;padding:16px;margin-left:280px}
+    .card{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:14px;margin:12px 0}
+    .qtitle{margin:0 0 10px 0;font-size:15px;line-height:1.35}
+    .choices{display:grid;gap:8px}
+    label.choice{display:flex;gap:10px;align-items:flex-start;padding:10px;border-radius:12px;border:1px solid rgba(255,255,255,.10);background:rgba(0,0,0,.12);cursor:pointer}
+    label.choice:hover{border-color:rgba(43,92,255,.6)}
+    input[type="radio"]{margin-top:2px}
+    .footerbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin:14px 0}
+    .nav{display:flex;gap:8px;flex-wrap:wrap}
+    .result{padding:12px;border-radius:14px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.18)}
+    .ok{outline:2px solid rgba(0,255,150,.35)}
+    .bad{outline:2px solid rgba(255,80,80,.40)}
+    .unanswered{outline:2px solid rgba(255,170,60,.45)}
+    .explain{color:#cfd6ff;font-size:13px;margin-top:10px;padding:10px;border-radius:12px;border:1px solid rgba(255,255,255,.10);background:rgba(0,0,0,.14);line-height:1.4}
+    .small{font-size:13px;color:#b9c2ff}
+
+    .errorBox{
+      display:none; margin:12px 0; padding:12px; border-radius:14px;
+      border:1px solid rgba(255,80,80,.45); background:rgba(255,80,80,.10);
+      color:#ffd2d2; white-space:pre-wrap; font-size:13px;
+    }
+
+    /* Mise en évidence après correction */
+    .choice.chosen{border-color: rgba(43,92,255,.75); background: rgba(43,92,255,.14)}
+    .choice.correct{border-color: rgba(0,255,150,.55); background: rgba(0,255,150,.12)}
+    .choice.wrong{border-color: rgba(255,80,80,.55); background: rgba(255,80,80,.12)}
+
+    @media (max-width: 980px){
+      #glossaryBox{position:static;width:auto;max-height:none;margin:12px 16px 0 16px}
+      .wrap{margin-left:0}
+    }
+  </style>
+</head>
+
+<body>
+<header>
+  <div class="row">
+    <h1>🛠️ QCM Troubleshooting</h1>
+  </div>
+  <div class="row meta">
+
+    <span class="pill" id="pillCount">Questions: …</span>
+    <span class="pill" id="pillPage">Page: …</span>
+    <span class="pill" id="pillAnswered">Répondu: …</span>
+    <span class="pill" id="pillScore">Score: —</span>
+  </div>
+  <div class="row" style="margin-top:10px">
+    <button id="btnPrev" class="secondary">◀ Page précédente</button>
+    <button id="btnNext" class="secondary">Page suivante ▶</button>
+    <button id="btnFinish">Corriger</button>
+    <button id="btnNew" class="secondary">Nouveau QCM (50)</button>
+    <button id="btnReset" class="secondary">Effacer réponses</button>
+  </div>
+</header>
+
+<div id="glossaryBox">
+  <h3>🧰 Outils de diagnostic</h3>
+  <input id="glossarySearch" type="text" placeholder="Rechercher (ex: ping, nslookup…)" />
+  <div id="glossaryList"></div>
+</div>
+
+<div class="wrap">
+  <div class="errorBox" id="errorBox"></div>
+  <div class="result" id="resultBox" style="display:none"></div>
+  <div id="questions"></div>
+
+  <div class="footerbar">
+    <div class="nav">
+      <button id="btnPrev2" class="secondary">◀ Page précédente</button>
+      <button id="btnNext2" class="secondary">Page suivante ▶</button>
+    </div>
+    <div class="small"> TSSR - 2026 </div>
+  </div>
+</div>
+
+<script>
+window.addEventListener("DOMContentLoaded", () => {
+  const errorBox = document.getElementById("errorBox");
+  function showError(err){
+    errorBox.style.display = "block";
+    errorBox.textContent = "Erreur JavaScript détectée :\n\n" + (err && err.stack ? err.stack : String(err));
+  }
+
+  try {
+    /* ===========================
+       Glossaire (textContent => safe)
+    =========================== */
+    const GLOSSARY = {
+      "ping": "Test ICMP de connectivité vers une IP/nom.",
+      "traceroute / tracert": "Chemin (hops) jusqu’à la destination.",
+      "nslookup / dig": "Test de résolution DNS.",
+      "ip a / ipconfig": "Configuration IP (Linux / Windows).",
+      "ip r / route print": "Table de routage (route par défaut).",
+      "arp -a": "Table ARP (IP ↔ MAC).",
+      "ss / netstat": "Ports/sockets en écoute, connexions.",
+      "curl": "Test HTTP/HTTPS (code, headers, réponse).",
+      "telnet / nc": "Test d’ouverture d’un port TCP.",
+      "journalctl": "Logs systemd (Linux).",
+      "systemctl": "État/gestion des services (Linux).",
+      "eventvwr": "Observateur d’événements (Windows).",
+      "services.msc": "Gestion des services Windows.",
+      "gpresult": "Diagnostic des GPO appliquées.",
+      "sfc / dism": "Réparation système Windows.",
+      "df / du": "Espace disque (Linux).",
+      "chkdsk": "Vérification disque Windows.",
+      "top / taskmgr": "Processus (Linux/Windows)."
+    };
+
+    function renderGlossary(filterText="") {
+      const container = document.getElementById("glossaryList");
+      const q = filterText.trim().toLowerCase();
+      const entries = Object.entries(GLOSSARY)
+        .sort((a,b)=>a[0].localeCompare(b[0], "fr"))
+        .filter(([k,v]) => !q || k.toLowerCase().includes(q) || v.toLowerCase().includes(q));
+
+      container.innerHTML = "";
+      if (!entries.length){
+        const d = document.createElement("div");
+        d.className = "g-value";
+        d.textContent = "Aucun résultat.";
+        container.appendChild(d);
+        return;
+      }
+      for (const [k,v] of entries){
+        const item = document.createElement("div"); item.className="g-item";
+        const kk = document.createElement("div"); kk.className="g-key"; kk.textContent=k;
+        const vv = document.createElement("div"); vv.className="g-value"; vv.textContent=v;
+        item.appendChild(kk); item.appendChild(vv);
+        container.appendChild(item);
+      }
+    }
+
+    /* ===========================
+       Utilitaires
+    =========================== */
+    function shuffle(arr) {
+      const a = arr.slice();
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+    function uniqPush(list, item){ if(!list.includes(item)) list.push(item); }
+    function clamp(n, min, max){ return Math.max(min, Math.min(max, n)); }
+    function normKey(s){ return String(s).trim().toLowerCase().replace(/\s+/g, " "); }
+
+    /* ===========================
+       Banque PRO (>= 220 uniques, on slice 200)
+    =========================== */
+    const QMAP = new Map();
+
+    function addQ(text, correct, wrongs, explain) {
+      const key = normKey(text);
+      if (QMAP.has(key)) return;
+
+      const choices = [];
+      uniqPush(choices, correct);
+      for (const w of wrongs) uniqPush(choices, w);
+
+      const fillers = ["Aucune de ces réponses", "Toutes ces réponses", "Cela dépend du contexte", "Non applicable"];
+      for (const f of fillers) if (choices.length < 4) uniqPush(choices, f);
+
+      const finalChoices = shuffle(choices.slice(0,4));
+      const answerIndex = finalChoices.indexOf(correct);
+
+      QMAP.set(key, { text, choices: finalChoices, answerIndex, explain: explain || "" });
+    }
+
+    /* ---- Blocs de base ---- */
+    const BASE = [
+      ["Le poste ping 8.8.8.8 mais pas un nom de domaine. Cause la plus probable ?", "Problème de DNS (résolution de noms)", ["Problème de carte réseau", "Problème de disque", "Problème de RAM"], "IP OK mais nom KO → DNS."],
+      ["L’adresse IP du poste est 169.254.x.x. Que signifie cela ?", "APIPA : échec d’obtention d’adresse DHCP", ["Adresse publique", "Adresse loopback", "Adresse de multicast"], "169.254/16 = auto-config si DHCP échoue."],
+      ["Ping vers 127.0.0.1 échoue. Que suspecter ?", "Pile réseau locale/OS défaillant (TCP/IP)", ["DNS cassé", "Route par défaut absente", "Proxy navigateur"], "127.0.0.1 teste le loopback local."],
+      ["Quel outil montre à quel saut (hop) la connexion se bloque ?", "traceroute / tracert", ["ping", "df -h", "gpresult"], "Permet d’identifier où la route s’arrête."],
+      ["Quel outil teste directement la résolution DNS d’un nom ?", "nslookup / dig", ["ping", "top / taskmgr", "arp -a"], "Permet d’interroger le DNS."],
+    ];
+    for (const [t,c,w,e] of BASE) addQ(t,c,w,e);
+
+    /* ---- Ports/protocoles (questions uniques) ---- */
+    const PORTS = [
+      ["HTTP","80"], ["HTTPS","443"], ["DNS","53"], ["SSH","22"], ["RDP","3389"], ["SMB","445"],
+      ["LDAP","389"], ["Kerberos","88"], ["NTP","123"], ["SMTP","25"], ["IMAPS","993"], ["POP3S","995"]
+    ];
+    for (const [svc, port] of PORTS) {
+      addQ(
+        `Quel port est le plus souvent associé à ${svc} ?`,
+        port,
+        shuffle(PORTS.filter(x=>x[0]!==svc).map(x=>x[1])).slice(0,3),
+        `Port courant : ${port} pour ${svc}.`
+      );
+      addQ(
+        `Ping vers un serveur OK, mais le service ${svc} ne répond pas. Hypothèse plausible ?`,
+        "Port filtré (pare-feu) ou service arrêté sur le serveur",
+        ["DNS cassé à coup sûr", "Clavier défectueux", "Problème de résolution d’écran"],
+        "Ping ne teste pas un port : le service peut être down ou bloqué."
+      );
+      addQ(
+        `Pour tester l’ouverture d’un port TCP (ex: ${svc} sur ${port}), quel outil est le plus adapté ?`,
+        "telnet / nc",
+        ["ping", "ip a / ipconfig", "df -h"],
+        "telnet/nc teste une connexion TCP vers un port."
+      );
+    }
+
+    /* ---- Méthode de diagnostic (ordre) ---- */
+    const ORDER = [
+      ["physique","Vérifier câble/Wi-Fi, lien, port switch", ["Changer DNS", "Modifier GPO", "Réinstaller l’application"], "Toujours valider la couche physique d’abord."],
+      ["configuration IP","Vérifier IP/masque/gateway/DNS", ["Remplacer le serveur", "Augmenter la RAM", "Changer le navigateur"], "Une config IP incorrecte bloque tout."],
+      ["routage","Vérifier route par défaut et routage", ["Changer le clavier", "Vider le cache navigateur", "Réinstaller Office"], "Sans route par défaut, pas de sortie."],
+      ["DNS","Tester la résolution (nslookup/dig)", ["Changer la carte graphique", "Défragmenter", "Éteindre l’imprimante"], "Beaucoup de pannes 'web' viennent du DNS."],
+      ["applicatif","Tester le port/service + consulter les logs", ["Changer le masque au hasard", "Couper DHCP", "Modifier l’heure sans raison"], "Une fois réseau OK, tester service + logs."
+      ],
+    ];
+    for (const [lvl,c,w,e] of ORDER) addQ(`Dans une méthode de diagnostic, que vérifier en priorité au niveau ${lvl} ?`, c, w, e);
+
+    /* ---- Outils Windows/Linux (beaucoup de questions) ---- */
+    const TOOLS = [
+      ["Windows","ipconfig /all","Afficher la configuration réseau détaillée (IP, DNS, DHCP)."],
+      ["Windows","route print","Afficher la table de routage."],
+      ["Windows","arp -a","Afficher la table ARP."],
+      ["Windows","eventvwr","Consulter les logs système et applicatifs."],
+      ["Windows","services.msc","Voir/démarrer/arrêter les services."],
+      ["Windows","gpresult","Voir les GPO réellement appliquées."],
+      ["Windows","sfc /scannow","Vérifier et réparer des fichiers système."],
+      ["Windows","DISM","Réparer l’image système."],
+      ["Windows","taskmgr","Voir processus et ressources."],
+      ["Linux","ip a","Afficher interfaces et adresses IP."],
+      ["Linux","ip r","Afficher routes (dont route par défaut)."],
+      ["Linux","ss -ltnp","Voir les ports TCP en écoute et le processus."],
+      ["Linux","journalctl -u <service>","Voir les logs d’un service systemd."],
+      ["Linux","systemctl status <service>","Voir l’état d’un service."],
+      ["Linux","df -h","Voir l’espace disque par FS."],
+      ["Linux","du -sh /var/*","Voir les plus gros dossiers."],
+      ["Linux","top","Voir processus et charge."],
+      ["Linux","dmesg","Voir messages noyau (matériel/boot)."],
+      ["Réseau","traceroute / tracert","Voir le chemin vers une destination."],
+      ["Réseau","nslookup / dig","Tester le DNS."],
+      ["Réseau","curl","Tester HTTP/HTTPS et codes retour."],
+      ["Réseau","telnet / nc","Tester l’ouverture d’un port TCP."],
+    ];
+    const toolNames = TOOLS.map(x=>x[1]);
+    for (const [os, cmd, desc] of TOOLS) {
+      addQ(
+        `Sur ${os}, quelle commande/outils utiliser pour : ${desc}`,
+        cmd,
+        shuffle(toolNames.filter(x=>x!==cmd)).slice(0,3),
+        `${cmd} est l’outil adapté ici.`
+      );
+    }
+
+    /* ---- Scénarios : DNS/DHCP/AD/GPO (templates) ---- */
+    const AD_DNS = [
+      ["Un poste ne rejoint pas le domaine. Cause très fréquente ?", "DNS du poste ne pointe pas vers le DNS du domaine", ["Manque de RAM", "Câble HDMI", "Problème de souris"], "AD dépend fortement du DNS (enregistrements SRV)."],
+      ["Erreur d’authentification domaine liée à l’heure. Piste probable ?", "Décalage d’horloge (NTP) entre poste et contrôleur de domaine", ["Disque plein du poste", "Mauvais proxy", "Problème VLAN"], "Kerberos est sensible au décalage horaire."],
+      ["Un lecteur réseau GPO ne se mappe plus pour plusieurs utilisateurs. Vérification prioritaire ?", "Vérifier gpresult + accès au partage + DNS/connexion au DC", ["Changer la RAM des PC", "Remplacer le switch central", "Réinstaller Windows sur tous les postes"], "Mapping dépend GPO + réseau + droits."],
+    ];
+    for (const q of AD_DNS) addQ(q[0], q[1], q[2], q[3]);
+
+    const DHCP_TEMPL = [
+      ["Plusieurs postes ont une mauvaise passerelle. Cause probable ?", "Option DHCP (gateway) incorrecte ou DHCP non autorisé (rogue)", ["Certificat expiré", "CPU trop faible", "Problème de clavier"], "La gateway est distribuée par DHCP (option 3)."],
+      ["Serveur DHCP indisponible, besoin urgent d’accès sur un poste critique. Solution temporaire ?", "Configurer une IP statique correcte (IP/masque/gateway/DNS)", ["Réinstaller le navigateur", "Changer la langue", "Couper le Wi-Fi"], "En urgence, l’IP statique permet de reprendre la main."],
+    ];
+    for (const q of DHCP_TEMPL) addQ(q[0], q[1], q[2], q[3]);
+
+    /* ---- Linux services (génération) ---- */
+    const LINUX_SERVICES = ["nginx","apache2","sshd","cron","docker","postgresql","mariadb","smbd","bind9","haproxy","rsyslog","cups"];
+    const LINUX_PATTERNS = [
+      ["Le service {svc} ne démarre plus après une modification de config. Meilleure action ?", "Consulter les logs (journalctl -u) et vérifier la syntaxe de la config", ["Changer l’IP du serveur", "Recréer les comptes utilisateurs", "Modifier la passerelle sans raison"], "Après une modif, une erreur de config est très probable."],
+      ["Le service {svc} répond en local mais pas depuis le réseau. Piste probable ?", "Pare-feu/port bloqué ou écoute sur mauvaise interface", ["Disque plein forcément", "DNS forcément cassé", "Problème de clavier"], "Local OK mais distant KO = port/pare-feu/écoute."],
+      ["Un port attendu pour {svc} n’est pas en écoute. Quelle commande vérifier ?", "ss -ltnp", ["df -h", "arp -a", "gpresult"], "ss montre l’écoute et le PID."],
+      ["Des erreurs 'Permission denied' empêchent {svc} d’accéder à des fichiers. Première piste ?", "Droits/propriétaire/ACL (ls -l, chmod/chown)", ["Changer le DNS", "Changer de VLAN", "Réinstaller le noyau"], "Permission denied = permissions/owner/ACL."],
+    ];
+    for (const svc of LINUX_SERVICES) {
+      for (const [tpl, c, w, e] of LINUX_PATTERNS) {
+        addQ(`Sur Linux : ${tpl.replace("{svc}", svc)}`, c, w, e);
+      }
+    }
+
+    /* ---- Wi-Fi/VPN/Proxy/Impression/Stockage (gros volume) ---- */
+    const WIFI = [
+      ["Le Wi-Fi se connecte mais 'pas d’accès internet'. Vérification prioritaire ?", "Adresse IP/gateway/DNS obtenus (DHCP) + portail captif éventuel", ["Réinstaller Windows", "Changer le disque dur", "Remplacer le serveur DNS sans test"], "Souvent DHCP, gateway ou portail captif."],
+      ["Le Wi-Fi est lent pour tous. Piste plausible ?", "Interférences/canal saturé ou point d’accès surchargé", ["DNS cassé", "Disque plein", "GPO appliquée"], "Lenteur globale Wi-Fi = radio/canal/AP."],
+      ["Le Wi-Fi fonctionne près de l’AP mais pas dans une zone. Piste probable ?", "Couverture insuffisante/obstacles (signal faible)", ["Proxy mal configuré", "Table ARP pleine", "Certificat expiré"], "Problème de couverture radio."],
+    ];
+    for (const q of WIFI) addQ(q[0], q[1], q[2], q[3]);
+
+    const VPN = [
+      ["Un utilisateur VPN se connecte mais n’accède pas aux ressources internes. Piste probable ?", "Routage/policy VPN ou DNS interne non poussé", ["RAM insuffisante", "Problème de clavier", "Câble HDMI"], "VPN OK mais pas ressources = routes/DNS/policies."],
+      ["VPN échoue uniquement sur un réseau public. Piste probable ?", "Port/protocole VPN bloqué par le réseau (filtrage)", ["Serveur DHCP down", "Disque plein du poste", "Problème d’imprimante"], "Certains réseaux filtrent IPSec/UDP/ports."],
+    ];
+    for (const q of VPN) addQ(q[0], q[1], q[2], q[3]);
+
+    const PROXY = [
+      ["Un seul poste n’accède plus au web, les autres OK. Première piste ?", "Proxy/paramètres navigateur/extension/certificats locaux", ["Changer le routeur central", "Réinstaller le domaine", "Modifier le DHCP global"], "Si seul poste impacté → config locale."],
+      ["Le web marche en IP mais pas en nom sur plusieurs postes. Piste ?", "DNS/proxy interceptant la résolution ou DNS client mal configuré", ["RAM", "CPU", "Imprimante"], "Nom KO = DNS/proxy."],
+    ];
+    for (const q of PROXY) addQ(q[0], q[1], q[2], q[3]);
+
+    const PRINT = [
+      ["Impression : rien ne sort, première vérification côté poste ?", "File d’attente/état en pause/imprimante par défaut", ["Changer la passerelle", "Réinstaller TCP/IP", "Modifier le masque"], "Souvent file bloquée ou mauvais périphérique."],
+      ["Impression réseau : ping imprimante OK mais impression KO. Piste ?", "Spooler/port d’impression/driver ou protocole (RAW 9100/LPR)", ["DNS forcément cassé", "Disque plein du routeur", "Carte graphique"], "Ping OK ≠ impression OK : vérifier spooler/ports/drivers."],
+    ];
+    for (const q of PRINT) addQ(q[0], q[1], q[2], q[3]);
+
+    const STORAGE = [
+      ["Un serveur ne crée plus de logs et certains services tombent. Cause fréquente ?", "Disque plein (ou inodes pleins)", ["DNS cassé", "Problème de souris", "Proxy"], "Sans espace disque, beaucoup de services échouent."],
+      ["Sur Linux, quelle commande montre rapidement l’espace disque utilisé ?", "df -h", ["ip r", "nslookup", "arp -a"], "df -h affiche l’usage par FS."],
+      ["Sur Windows, quel outil/commande vérifie un disque avec erreurs ?", "chkdsk", ["gpresult", "tracert", "nslookup"], "chkdsk vérifie/répare le système de fichiers."],
+    ];
+    for (const q of STORAGE) addQ(q[0], q[1], q[2], q[3]);
+
+    /* ---- Codes HTTP (série) ---- */
+    const HTTP = [
+      ["401","Non authentifié (auth requise)"],
+      ["403","Accès interdit (autorisation)"],
+      ["404","Ressource introuvable"],
+      ["500","Erreur serveur (app)"],
+      ["502","Bad gateway (proxy/reverse)"],
+      ["503","Service indisponible (surcharge/maintenance)"],
+      ["504","Gateway timeout"],
+    ];
+    for (const [code, meaning] of HTTP) {
+      addQ(
+        `HTTP : que signifie le code ${code} ?`,
+        meaning,
+        shuffle(HTTP.filter(x=>x[0]!==code).map(x=>x[1])).slice(0,3),
+        `Le code ${code} correspond à : ${meaning}.`
+      );
+      addQ(
+        `Une appli web renvoie ${code}. Quelle action de troubleshooting est la plus pertinente ?`,
+        code === "401" || code==="403"
+          ? "Vérifier authentification/permissions et logs côté appli"
+          : code === "404"
+            ? "Vérifier l’URL, la route applicative et la config du serveur web"
+            : "Consulter les logs serveur/app et vérifier l’état du service",
+        shuffle([
+          "Changer le câble réseau du client",
+          "Modifier le DHCP global",
+          "Réinstaller tous les postes",
+          "Désactiver le switch principal"
+        ]).slice(0,3),
+        "Les codes HTTP orientent directement le diagnostic (auth, ressource, serveur, proxy)."
+      );
+    }
+
+    /* ---- Génération massive propre (cas multi-axes) ---- */
+    const SYMPTOMS = [
+      ["ne ping pas la gateway", "IP/masque/VLAN/câble ou gateway down"],
+      ["ping la gateway mais pas internet", "route/NAT/pare-feu amont"],
+      ["ping internet mais pas les noms", "DNS"],
+      ["le navigateur dit 'résolution de nom impossible'", "DNS"],
+      ["connexion lente sur tous les postes", "saturation lien/wi-fi/proxy"],
+      ["connexion lente sur un seul poste", "config locale/malware/proxy/cache"],
+      ["accès partage refusé", "permissions/NTFS/partage/auth"],
+      ["RDP refuse mais ping OK", "port 3389 filtré/service RDP down"],
+      ["SSH refuse mais ping OK", "port 22 filtré/service sshd down"],
+      ["site en HTTPS erreur certificat", "certificat/CA/nom/expiration"],
+      ["PC obtient APIPA", "DHCP indisponible/relay/VLAN"],
+      ["aucune adresse IP", "câble/Wi-Fi/driver/DHCP"],
+      ["pas d’accès à un serveur spécifique", "route/ACL/DNS/port/service"],
+      ["impression en attente", "spooler/queue/driver"],
+    ];
+
+    const FIRST_ACTIONS = [
+      ["Vérifier lien physique et interface up", "Toujours commencer par la couche la plus basse."],
+      ["Vérifier config IP (IP/masque/gateway/DNS)", "Une config IP incorrecte casse la connectivité."],
+      ["Tester DNS (nslookup/dig)", "Nom KO → DNS."],
+      ["Tester un port (telnet/nc) ou HTTP (curl)", "Ping OK ne garantit pas le service."],
+      ["Consulter les logs (eventvwr/journalctl)", "Les logs donnent souvent la cause exacte."],
+      ["Comparer avec un poste OK (diff config)", "Comparer aide à isoler la variable qui change."],
+    ];
+
+    const ENV = ["poste Windows", "poste Linux", "serveur Windows", "serveur Linux", "poste Wi-Fi", "poste VPN"];
+
+    for (const env of ENV) {
+      for (const [sym, cause] of SYMPTOMS) {
+        for (const [action, why] of FIRST_ACTIONS) {
+          // On ne combine pas tout pour éviter trop de “répétition” : on prend seulement certaines combinaisons
+          const selector = (env.length + sym.length + action.length) % 3;
+          if (selector !== 0) continue;
+
+          addQ(
+            `Sur un ${env}, un utilisateur ${sym}. Quelle est la meilleure première action ?`,
+            action,
+            shuffle(FIRST_ACTIONS.filter(x=>x[0]!==action).map(x=>x[0])).slice(0,3),
+            `${why} Hypothèse fréquente : ${cause}.`
+          );
+        }
+      }
+    }
+
+    /* ===========================
+       Finalisation banque
+    =========================== */
+    const bankAll = Array.from(QMAP.values());
+
+    // Vérif unicité réelle
+    const seen = new Set();
+    for (const q of bankAll) {
+      const k = normKey(q.text);
+      if (seen.has(k)) throw new Error("Doublon détecté dans la banque: " + q.text);
+      seen.add(k);
+    }
+
+    if (bankAll.length < 200) {
+      throw new Error("Banque insuffisante: " + bankAll.length + " questions (il en faut au moins 200).");
+    }
+
+    // On garde 200, mais on génère plus pour être safe
+    const bank200 = bankAll.slice(0, 200);
+
+    /* ===========================
+       Quiz UI (50 aléatoires)
+    =========================== */
+    const elQ = document.getElementById("questions");
+    const pillBank = document.getElementById("pillBank");
+    const pillCount = document.getElementById("pillCount");
+    const pillPage = document.getElementById("pillPage");
+    const pillAnswered = document.getElementById("pillAnswered");
+    const pillScore = document.getElementById("pillScore");
+    const resultBox = document.getElementById("resultBox");
+
+    const btnPrev = document.getElementById("btnPrev");
+    const btnNext = document.getElementById("btnNext");
+    const btnPrev2 = document.getElementById("btnPrev2");
+    const btnNext2 = document.getElementById("btnNext2");
+    const btnFinish = document.getElementById("btnFinish");
+    const btnNew = document.getElementById("btnNew");
+    const btnReset = document.getElementById("btnReset");
+
+    const QUIZ_SIZE = 50;
+    const pageSize = 10;
+    let questions = [];
+    let userAnswers = [];
+    let corrected = false;
+    let page = 0;
+
+    function answeredCount(){ return userAnswers.filter(x=>x!==null).length; }
+
+    function makeNewQuiz(){
+      questions = shuffle(bank200).slice(0, QUIZ_SIZE);
+      userAnswers = new Array(questions.length).fill(null);
+      corrected = false;
+      page = 0;
+      resultBox.style.display="none";
+      pillScore.textContent="Score: —";
+      render();
+      window.scrollTo({top:0, behavior:"smooth"});
+    }
+
+    function resetAnswersOnly(){
+      userAnswers = new Array(questions.length).fill(null);
+      corrected = false;
+      resultBox.style.display="none";
+      pillScore.textContent="Score: —";
+      render();
+      window.scrollTo({top:0, behavior:"smooth"});
+    }
+
+    function render(){
+      const totalPages = Math.ceil(questions.length / pageSize);
+
+      pillCount.textContent = `Questions: ${questions.length}`;
+      pillPage.textContent = `Page: ${page+1}/${totalPages}`;
+      pillAnswered.textContent = `Répondu: ${answeredCount()}/${questions.length}`;
+
+      btnPrev.disabled = page===0;
+      btnPrev2.disabled = page===0;
+      btnNext.disabled = page>=totalPages-1;
+      btnNext2.disabled = page>=totalPages-1;
+
+      elQ.innerHTML="";
+      const start = page * pageSize;
+      const end = Math.min(start + pageSize, questions.length);
+
+      for(let i=start;i<end;i++){
+        const q = questions[i];
+        const card = document.createElement("div");
+        card.className = "card";
+        card.id = `q-${i}`;
+
+        if(corrected){
+          const ua = userAnswers[i];
+          if(ua===null) card.classList.add("unanswered");
+          else if(ua===q.answerIndex) card.classList.add("ok");
+          else card.classList.add("bad");
+        }
+
+        const h = document.createElement("h3");
+        h.className = "qtitle";
+        h.textContent = `${i+1}. ${q.text}`;
+        card.appendChild(h);
+
+        const choices = document.createElement("div");
+        choices.className = "choices";
+
+        q.choices.forEach((choiceText, idx)=>{
+          const lab = document.createElement("label");
+          lab.className = "choice";
+
+          const inp = document.createElement("input");
+          inp.type = "radio";
+          inp.name = `q${i}`;
+          inp.value = idx;
+          inp.checked = userAnswers[i]===idx;
+          inp.disabled = corrected;
+
+          if (corrected) {
+            if (userAnswers[i] === idx) lab.classList.add("chosen");
+            if (idx === q.answerIndex) lab.classList.add("correct");
+            if (userAnswers[i] !== null && userAnswers[i] === idx && idx !== q.answerIndex) {
+              lab.classList.add("wrong");
+            }
+          }
+
+          inp.addEventListener("change", ()=>{
+            userAnswers[i]=idx;
+            pillAnswered.textContent = `Répondu: ${answeredCount()}/${questions.length}`;
+          });
+
+          const span = document.createElement("div");
+          span.textContent = choiceText;
+
+          lab.appendChild(inp);
+          lab.appendChild(span);
+          choices.appendChild(lab);
+        });
+
+        card.appendChild(choices);
+
+        if(corrected){
+          const ua = userAnswers[i];
+          const correctIdx = q.answerIndex;
+          if(ua===null || ua!==correctIdx){
+            const exp = document.createElement("div");
+            exp.className="explain";
+            const status = (ua===null) ? "⚠️ Question non répondue" : "❌ Mauvaise réponse";
+            const uaTxt = (ua===null) ? "—" : q.choices[ua];
+            exp.innerHTML =
+              `<div>${status}</div>`+
+              `<div><b>Ta réponse :</b> ${uaTxt}</div>`+
+              `<div><b>Bonne réponse :</b> ${q.choices[correctIdx]}</div>`+
+              `<div style="margin-top:6px;">💡 ${q.explain || "Pas d’explication disponible."}</div>`;
+            card.appendChild(exp);
+          }
+        }
+
+        elQ.appendChild(card);
+      }
+    }
+
+    function goToFirstWrong(){
+      for(let i=0;i<questions.length;i++){
+        if(userAnswers[i]===null || userAnswers[i]!==questions[i].answerIndex){
+          page = Math.floor(i/pageSize);
+          render();
+          const el = document.getElementById(`q-${i}`);
+          if(el) el.scrollIntoView({behavior:"smooth", block:"start"});
+          return;
+        }
+      }
+    }
+
+    function grade(){
+      corrected = true;
+      let correct=0, unanswered=0;
+      for(let i=0;i<questions.length;i++){
+        if(userAnswers[i]===null) unanswered++;
+        if(userAnswers[i]===questions[i].answerIndex) correct++;
+      }
+      const wrong = questions.length - correct - unanswered;
+      const score = Math.round((correct/questions.length)*1000)/10;
+
+      pillScore.textContent = `Score: ${correct}/${questions.length} (${score}%)`;
+      resultBox.style.display="block";
+      resultBox.innerHTML =
+        `<div style="font-size:16px;font-weight:800;margin-bottom:6px;">Résultat</div>`+
+        `<div>✅ Bonnes réponses : <b>${correct}</b></div>`+
+        `<div>❌ Erreurs : <b>${wrong}</b></div>`+
+        `<div>⚠️ Non répondu : <b>${unanswered}</b></div>`+
+        `<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">`+
+        `<button class="secondary" id="btnFirstWrong">Aller à la première erreur</button>`+
+        `<button class="secondary" id="btnTop">Revenir en haut</button>`+
+        `</div>`;
+
+      document.getElementById("btnFirstWrong").onclick = goToFirstWrong;
+      document.getElementById("btnTop").onclick = ()=>window.scrollTo({top:0, behavior:"smooth"});
+
+      render();
+      window.scrollTo({top:0, behavior:"smooth"});
+    }
+
+    btnPrev.onclick = ()=>{ page=clamp(page-1,0,9999); render(); window.scrollTo({top:0,behavior:"smooth"}); };
+    btnNext.onclick = ()=>{ page=clamp(page+1,0,9999); render(); window.scrollTo({top:0,behavior:"smooth"}); };
+    btnPrev2.onclick = btnPrev.onclick;
+    btnNext2.onclick = btnNext.onclick;
+
+    btnFinish.onclick = grade;
+    btnNew.onclick = makeNewQuiz;
+    btnReset.onclick = resetAnswersOnly;
+
+    renderGlossary();
+    document.getElementById("glossarySearch").addEventListener("input", (e)=>renderGlossary(e.target.value));
+    makeNewQuiz();
+
+  } catch (err) {
+    showError(err);
+  }
+});
+</script>
+</body>
+</html>

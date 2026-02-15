@@ -72,7 +72,7 @@
 <body>
 
   <div class="container">
-    <h1>📘 Ressources pour réussir le diplôme TSSR</h1>
+    <h1>📘 Ressources pour tester tes connaissances TSSR</h1>
 
     <div class="description">
       Voici quelques QCM pour s'entraîner et tester ses connaissances de la formation TSSR
@@ -85,6 +85,10 @@
 
       <a class="btn" href="https://adrixbssy.github.io/Linux-01.html">
         🐧 QCM Linux - Commandes de base (50 questions)
+      </a>
+
+      <a class="btn" href="https://adrixbssy.github.io/Troubleshooting.html">
+        🛠️ QCM Troubleshooting (50 questions) 
       </a>
     </div>
   </div>

@@ -1,0 +1,814 @@
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>TSSR — Scripts utiles examen</title>
+  <style>
+    :root{
+      --bg:#0b1020;
+      --panel:#111a33;
+      --panel2:rgba(255,255,255,.06);
+      --line:rgba(255,255,255,.10);
+      --text:#e8ecff;
+      --muted:#b9c2ff;
+      --blue:#2b5cff;
+      --green:#16c47f;
+      --red:#ff6b6b;
+      --yellow:#ffcc66;
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text)}
+    a{color:#cfe0ff;text-decoration:none}
+    header{position:sticky;top:0;z-index:20;padding:18px 16px;background:var(--panel);border-bottom:1px solid var(--line);backdrop-filter:blur(6px)}
+    h1{margin:0 0 8px 0;font-size:20px}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .pill{padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.08);color:var(--muted);font-size:14px}
+    .search{flex:1;min-width:240px;max-width:520px;padding:10px 12px;border-radius:12px;border:1px solid rgba(157,180,255,.18);background:rgba(0,0,0,.20);color:var(--text);outline:none}
+    .btn{background:var(--blue);color:#fff;border:0;padding:10px 12px;border-radius:10px;font-weight:700;cursor:pointer}
+    .btn.secondary{background:#26304f}
+    .layout{display:grid;grid-template-columns:260px 1fr;gap:16px;max-width:1440px;margin:0 auto;padding:16px}
+    aside{position:sticky;top:112px;align-self:start;background:rgba(157,180,255,.10);border:1px solid rgba(157,180,255,.22);border-radius:16px;padding:14px;max-height:calc(100vh - 130px);overflow:auto}
+    aside h2{margin:0 0 10px 0;font-size:15px;color:#dbe3ff}
+    .navlink{display:block;padding:9px 10px;border-radius:12px;color:#dbe3ff;border:1px solid transparent}
+    .navlink:hover{background:rgba(255,255,255,.06);border-color:var(--line)}
+    main{min-width:0}
+    .hero,.card{background:var(--panel2);border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:14px}
+    .hero p,.meta,.desc{color:var(--muted)}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin-top:12px}
+    .mini{background:rgba(0,0,0,.14);border:1px solid var(--line);border-radius:14px;padding:12px}
+    section{scroll-margin-top:110px}
+    section h2{margin:0 0 8px 0;font-size:22px}
+    .section-intro{margin:0 0 12px 0;color:var(--muted)}
+    .script{background:rgba(0,0,0,.14);border:1px solid var(--line);border-radius:16px;margin:12px 0;overflow:hidden}
+    .script-head{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line);background:rgba(255,255,255,.03)}
+    .script-title{font-weight:800}
+    .tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:5px}
+    .tag{padding:4px 8px;border-radius:999px;background:rgba(43,92,255,.16);color:#d7e4ff;font-size:12px}
+    .copy-btn{background:var(--blue);color:#fff;border:0;padding:8px 10px;border-radius:10px;cursor:pointer;font-weight:700;white-space:nowrap}
+    .copy-btn.ok{background:var(--green)}
+    pre{margin:0;padding:14px;overflow:auto;background:#0a0f1e;color:#eaf1ff;font-size:13px;line-height:1.48}
+    code{font-family:Consolas,Monaco,'Courier New',monospace}
+    .note{padding:10px 12px;border-radius:12px;background:rgba(255,204,102,.10);border:1px solid rgba(255,204,102,.25);color:#ffe5a5;font-size:13px;margin:10px 0 0 0}
+    .muted{color:var(--muted)}
+    .footer{color:var(--muted);font-size:13px;padding:10px 4px 30px}
+    .hidden{display:none !important}
+    @media (max-width: 980px){
+      .layout{grid-template-columns:1fr}
+      aside{position:static;max-height:none}
+    }
+  </style>
+</head>
+<body>
+<header>
+  <h1>TSSR — Scripts utiles pour l’examen</h1>
+  <div class="row" style="margin-bottom:10px">
+    <span class="pill">Blocs faciles à copier</span>
+    <span class="pill">Style sombre proche de ta page</span>
+    <span class="pill" id="countPill">0 scripts</span>
+  </div>
+  <div class="row">
+    <input id="searchInput" class="search" type="text" placeholder="Rechercher : AD, DHCP, cron, rsync, ACL, fsmo, grep..." />
+    <button class="btn secondary" id="expandAll">Tout ouvrir</button>
+    <button class="btn secondary" id="collapseAll">Réduire</button>
+  </div>
+</header>
+
+<div class="layout">
+  <aside>
+    <h2>Sommaire</h2>
+    <a class="navlink" href="#overview">Vue rapide</a>
+    <a class="navlink" href="#ad">Windows / Active Directory</a>
+    <a class="navlink" href="#linux">Linux</a>
+    <a class="navlink" href="#reseau">Réseau / Cisco</a>
+    <a class="navlink" href="#dhcp">DHCP / Diagnostic</a>
+    <a class="navlink" href="#ad-admin">AD Admin / Restauration</a>
+    <a class="navlink" href="#cheats">Mini pense-bête</a>
+  </aside>
+
+  <main>
+    <section id="overview" class="hero searchable" data-search="overview examen tssr scripts utiles powershell bash cisco ad linux">
+      <h2 style="margin-top:0">Page complète prête à utiliser</h2>
+      <p>Cette page regroupe les scripts et commandes utiles repris de l’examen corrigé, avec un bloc principal de création d’utilisateurs AD enrichi avec journalisation et email récapitulatif, puis les commandes Linux, réseau Cisco, DHCP et administration AD les plus utiles à réviser.</p>
+      <div class="grid">
+        <div class="mini"><strong>Windows / AD</strong><div class="meta">New-ADUser, log, mail, GPO, FSMO, corbeille AD, tombstone.</div></div>
+        <div class="mini"><strong>Linux</strong><div class="meta">find, grep, redirections, jobs, cron, tar, rsync.</div></div>
+        <div class="mini"><strong>Réseau</strong><div class="meta">VLAN access/trunk, DHCP relay, ACL, routes statiques.</div></div>
+        <div class="mini"><strong>Diagnostic</strong><div class="meta">ipconfig, DHCP, DNS, commandes de vérification.</div></div>
+      </div>
+      <div class="note">Pense à adapter les IP, les noms d’interface, le serveur SMTP et les chemins avant exécution en prod.</div>
+    </section>
+
+    <section id="ad">
+      <h2>Windows / Active Directory</h2>
+      <p class="section-intro">Bloc principal demandé + variantes utiles pour l’examen.</p>
+
+      <div class="script searchable" data-search="powershell active directory csv nouveaux_users création utilisateur ad log email send-mailmessage remove-accents get-adorganizationalunit new-aduser">
+        <div class="script-head">
+          <div>
+            <div class="script-title">Création d’utilisateurs AD depuis CSV + gestion d’erreurs + log + email RH</div>
+            <div class="tags"><span class="tag">PowerShell</span><span class="tag">Active Directory</span><span class="tag">CSV</span><span class="tag">Email</span></div>
+          </div>
+          <button class="copy-btn" data-copy-target="code-ad-full">Copier</button>
+        </div>
+<pre><code id="code-ad-full">Import-Module ActiveDirectory
+
+$CSVPath    = "C:\Scripts\nouveaux_users.csv"
+$LogFile    = "C:\Scripts\creation_users.log"
+$Password   = ConvertTo-SecureString "P@ssw0rd2025!" -AsPlainText -Force
+$Users      = Import-Csv -Path $CSVPath -Delimiter ","
+
+$SuccessCount = 0
+$ErrorCount   = 0
+$ErrorsList   = @()
+
+# Paramètres email
+$From       = "noreply@techsolutions.local"
+$To         = "rh@techsolutions.local"
+$SMTPServer = "smtp.techsolutions.local"
+$SMTPPort   = 25
+
+function Write-Log {
+    param(
+        [string]$Level,
+        [string]$Message
+    )
+
+    $Timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+    $Line = "[$Timestamp] [$Level] $Message"
+    Add-Content -Path $LogFile -Value $Line
+}
+
+function Remove-Accents {
+    param([string]$Text)
+
+    $Normalized = $Text.Normalize([Text.NormalizationForm]::FormD)
+    $Result = $Normalized -replace '\p{M}', ''
+    return $Result
+}
+
+function Normalize-Login {
+    param([string]$Value)
+
+    $Value = Remove-Accents $Value
+    $Value = $Value.ToLower()
+    $Value = $Value -replace "\s+", ""
+    $Value = $Value -replace "[^a-z0-9\.-]", ""
+    return $Value
+}
+
+"=== Début création utilisateurs : $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') ===" | Out-File -FilePath $LogFile -Encoding UTF8
+
+foreach ($User in $Users) {
+    $Prenom   = $User.Prenom.Trim()
+    $Nom      = $User.Nom.Trim()
+    $Service  = $User.Service.Trim()
+    $Fonction = $User.Fonction.Trim()
+
+    $SamBase      = "$(Normalize-Login $Prenom).$(Normalize-Login $Nom)"
+    $Sam          = $SamBase
+    $UPN          = "$Sam@techsolutions.local"
+    $DisplayName  = "$Prenom $Nom"
+    $OUPath       = "OU=$Service,OU=Utilisateurs,DC=techsolutions,DC=local"
+
+    try {
+        # Vérifier OU
+        $OUExists = Get-ADOrganizationalUnit -Filter "DistinguishedName -eq '$OUPath'" -ErrorAction SilentlyContinue
+        if (-not $OUExists) {
+            throw "L'OU $OUPath n'existe pas"
+        }
+
+        # Vérifier utilisateur existant
+        $ExistingUser = Get-ADUser -Filter "SamAccountName -eq '$Sam'" -ErrorAction SilentlyContinue
+        if ($ExistingUser) {
+            throw "L'utilisateur $Sam existe déjà"
+        }
+
+        # Création utilisateur
+        New-ADUser -Name $DisplayName `
+                   -GivenName $Prenom `
+                   -Surname $Nom `
+                   -SamAccountName $Sam `
+                   -UserPrincipalName $UPN `
+                   -Path $OUPath `
+                   -AccountPassword $Password `
+                   -Enabled $true `
+                   -ChangePasswordAtLogon $true `
+                   -Title $Fonction `
+                   -Description "Créé automatiquement le $(Get-Date -Format 'dd/MM/yyyy HH:mm')" `
+                   -ErrorAction Stop
+
+        Write-Host "[SUCCÈS] $DisplayName ($Sam)" -ForegroundColor Green
+        Write-Log -Level "SUCCES" -Message "Utilisateur créé : $DisplayName ($Sam) dans $OUPath"
+        $SuccessCount++
+    }
+    catch {
+        $ErrorMessage = $_.Exception.Message
+        Write-Host "[ERREUR] $DisplayName ($Sam) : $ErrorMessage" -ForegroundColor Red
+        Write-Log -Level "ERREUR" -Message "$DisplayName ($Sam) : $ErrorMessage"
+        $ErrorsList += "- $DisplayName ($Sam) : $ErrorMessage"
+        $ErrorCount++
+    }
+}
+
+$Summary = @"
+=== RÉSUMÉ ===
+Utilisateurs créés : $SuccessCount
+Erreurs rencontrées : $ErrorCount
+Total traité : $($Users.Count)
+"@
+
+Write-Host $Summary -ForegroundColor Cyan
+Add-Content -Path $LogFile -Value ""
+Add-Content -Path $LogFile -Value $Summary
+
+$Body = @"
+Bonjour,
+
+Le script de création d'utilisateurs Active Directory est terminé.
+
+Résumé :
+- Utilisateurs créés : $SuccessCount
+- Erreurs rencontrées : $ErrorCount
+- Total traité : $($Users.Count)
+
+Détail des erreurs :
+$($ErrorsList -join "`r`n")
+
+Le fichier de log complet est joint à ce message.
+
+Cordialement,
+Script automatisé
+"@
+
+try {
+    Send-MailMessage -From $From `
+                     -To $To `
+                     -Subject "Rapport création utilisateurs AD - $(Get-Date -Format 'dd/MM/yyyy HH:mm')" `
+                     -Body $Body `
+                     -Attachments $LogFile `
+                     -SmtpServer $SMTPServer `
+                     -Port $SMTPPort `
+                     -Encoding UTF8
+
+    Write-Host "Email envoyé avec succès à $To" -ForegroundColor Green
+    Write-Log -Level "INFO" -Message "Email récapitulatif envoyé à $To"
+}
+catch {
+    Write-Host "Erreur lors de l'envoi de l'email : $($_.Exception.Message)" -ForegroundColor Red
+    Write-Log -Level "ERREUR" -Message "Erreur d'envoi email : $($_.Exception.Message)"
+}
+
+Write-Log -Level "INFO" -Message "Fin du script"
+</code></pre>
+      </div>
+
+      <div class="script searchable" data-search="powershell remove accents login samaccountname normalisation">
+        <div class="script-head">
+          <div>
+            <div class="script-title">Fonction PowerShell pour supprimer les accents</div>
+            <div class="tags"><span class="tag">PowerShell</span><span class="tag">SamAccountName</span></div>
+          </div>
+          <button class="copy-btn" data-copy-target="code-remove-accents">Copier</button>
+        </div>
+<pre><code id="code-remove-accents">function Remove-Accents {
+    param([string]$Text)
+
+    $Normalized = $Text.Normalize([Text.NormalizationForm]::FormD)
+    $Result = $Normalized -replace '\p{M}', ''
+    return $Result
+}
+
+# Exemple
+$Sam = (Remove-Accents "Élodie.Durand").ToLower()
+</code></pre>
+      </div>
+
+      <div class="script searchable" data-search="powershell get-adorganizationalunit tester existence ou active directory">
+        <div class="script-head">
+          <div>
+            <div class="script-title">Tester si une OU existe</div>
+            <div class="tags"><span class="tag">PowerShell</span><span class="tag">OU</span></div>
+          </div>
+          <button class="copy-btn" data-copy-target="code-ou-check">Copier</button>
+        </div>
+<pre><code id="code-ou-check">$OUPath = "OU=Commercial,OU=Utilisateurs,DC=techsolutions,DC=local"
+
+$OUExists = Get-ADOrganizationalUnit -Filter "DistinguishedName -eq '$OUPath'" -ErrorAction SilentlyContinue
+
+if ($OUExists) {
+    Write-Host "L'OU existe" -ForegroundColor Green
+} else {
+    Write-Host "L'OU n'existe pas" -ForegroundColor Red
+}
+</code></pre>
+      </div>
+
+      <div class="script searchable" data-search="gpresult gpo lsdou windows cmd rapport html">
+        <div class="script-head">
+          <div>
+            <div class="script-title">Voir les GPO appliquées</div>
+            <div class="tags"><span class="tag">Windows</span><span class="tag">GPO</span></div>
+          </div>
+          <button class="copy-btn" data-copy-target="code-gpo">Copier</button>
+        </div>
+<pre><code id="code-gpo">gpresult /r
+gpresult /h rapport-gpo.html
+</code></pre>
+      </div>
+
+      <div class="script searchable" data-search="fsmo netdom query fsmo powershell get-addomain get-adforest">
+        <div class="script-head">
+          <div>
+            <div class="script-title">Identifier les rôles FSMO</div>
+            <div class="tags"><span class="tag">Windows</span><span class="tag">AD</span><span class="tag">FSMO</span></div>
+          </div>
+          <button class="copy-btn" data-copy-target="code-fsmo">Copier</button>
+        </div>
+<pre><code id="code-fsmo"># PowerShell
+Get-ADDomain | Select-Object PDCEmulator, RIDMaster, InfrastructureMaster
+Get-ADForest | Select-Object SchemaMaster, DomainNamingMaster
+
+# CMD
+netdom query fsmo
+
+# Déplacer un rôle
+Move-ADDirectoryServerOperationMasterRole -Identity "DC02" -OperationMasterRole PDCEmulator
+</code></pre>
+      </div>
+    </section>
+
+    <section id="linux">
+      <h2>Linux</h2>
+      <p class="section-intro">Commandes et scripts bash utiles à retenir.</p>
+
+      <div class="script searchable" data-search="linux find fichiers volumineux var log size 100M">
+        <div class="script-head">
+          <div>
+            <div class="script-title">Trouver les fichiers de plus de 100 Mo dans /var/log</div>
+            <div class="tags"><span class="tag">Linux</span><span class="tag">find</span></div>
+          </div>
+          <button class="copy-btn" data-copy-target="code-find-big">Copier</button>
+        </div>
+<pre><code id="code-find-big">find /var/log -type f -size +100M
+
+# Variante avec affichage lisible
+find /var/log -type f -size +100M -exec ls -lh {} \;
+
+# Variante triée par taille
+find /var/log -type f -size +100M -exec ls -lh {} \; | sort -k5 -hr
+</code></pre>
+      </div>
+
+      <div class="script searchable" data-search="linux grep failed password auth.log wc -l ssh">
+        <div class="script-head">
+          <div>
+            <div class="script-title">Compter les échecs SSH dans auth.log</div>
+            <div class="tags"><span class="tag">Linux</span><span class="tag">grep</span><span class="tag">Logs</span></div>
+          </div>
+          <button class="copy-btn" data-copy-target="code-grep-failed">Copier</button>
+        </div>
+<pre><code id="code-grep-failed">grep -E '^Failed password' /var/log/auth.log | wc -l
+
+# Afficher les IP sources les plus fréquentes
+grep -E '^Failed password' /var/log/auth.log | awk '{print $(NF-3)}' | sort | uniq -c | sort -rn
+
+# Sur systemd
+journalctl -u ssh --since "24 hours ago" | grep "Failed password" | wc -l
+</code></pre>
+      </div>
+
+      <div class="script searchable" data-search="linux redirections stdout stderr append bash">
+        <div class="script-head">
+          <div>
+            <div class="script-title">Redirections utiles</div>
+            <div class="tags"><span class="tag">Linux</span><span class="tag">Bash</span></div>
+          </div>
+          <button class="copy-btn" data-copy-target="code-redirections">Copier</button>
+        </div>
+<pre><code id="code-redirections"># Écraser un fichier avec stdout
+ls -l &gt; liste.txt
+
+# Ajouter à la fin
+echo "Nouvelle ligne" &gt;&gt; fichier.txt
+
+# Rediriger stderr
+find / -name "test" 2&gt; erreurs.log
+
+# stdout + stderr dans le même fichier
+commande &gt; output.txt 2&gt;&amp;1
+
+# Tout capturer (bash)
+commande &amp;&gt; all.txt
+</code></pre>
+      </div>
+
+      <div class="script searchable" data-search="linux processus arrière plan background jobs nohup bg fg">
+        <div class="script-head">
+          <div>
+            <div class="script-title">Processus en arrière-plan</div>
+            <div class="tags"><span class="tag">Linux</span><span class="tag">jobs</span></div>
+          </div>
+          <button class="copy-btn" data-copy-target="code-bg">Copier</button>
+        </div>
+<pre><code id="code-bg"># Lancer directement en arrière-plan
+./script.sh &amp;
+
+# Suspendre un programme en cours
+# Ctrl + Z
+
+# Reprendre en arrière-plan
+bg
+
+# Voir les jobs
+jobs
+
+# Revenir au premier plan
+fg %1
+
+# Détacher du terminal
+nohup ./script.sh &amp;
+</code></pre>
+      </div>
+
+      <div class="script searchable" data-search="cron sauvegarde linux tar backup cron daily">
+        <div class="script-head">
+          <div>
+            <div class="script-title">Script de sauvegarde tar + cron</div>
+            <div class="tags"><span class="tag">Linux</span><span class="tag">cron</span><span class="tag">tar</span></div>
+          </div>
+          <button class="copy-btn" data-copy-target="code-cron-tar">Copier</button>
+        </div>
+<pre><code id="code-cron-tar">#!/bin/bash
+
+SRC="/home"
+DEST="/backup"
+DATE=$(date +%F_%H-%M)
+ARCHIVE="$DEST/home_backup_$DATE.tar.gz"
+LOGFILE="/var/log/backup_home.log"
+
+mkdir -p "$DEST"
+
+tar -czf "$ARCHIVE" "$SRC"
+if [ $? -eq 0 ]; then
+  echo "[$(date '+%F %T')] Sauvegarde OK : $ARCHIVE" &gt;&gt; "$LOGFILE"
+else
+  echo "[$(date '+%F %T')] ERREUR sauvegarde" &gt;&gt; "$LOGFILE"
+fi
+
+# Crontab : tous les jours à 2h00
+# 0 2 * * * /usr/local/bin/backup_home.sh
+</code></pre>
+      </div>
+
+      <div class="script searchable" data-search="rsync rotation sauvegarde linux cron backup rotations quotidienne">
+        <div class="script-head">
+          <div>
+            <div class="script-title">Sauvegarde rsync avec rotation simple</div>
+            <div class="tags"><span class="tag">Linux</span><span class="tag">rsync</span><span class="tag">rotation</span></div>
+          </div>
+          <button class="copy-btn" data-copy-target="code-rsync-rotation">Copier</button>
+        </div>
+<pre><code id="code-rsync-rotation">#!/bin/bash
+
+SRC="/srv/data/"
+BASE="/backup/rsync"
+TODAY="$BASE/current"
+YESTERDAY="$BASE/previous"
+LOGFILE="/var/log/rsync_backup.log"
+
+mkdir -p "$BASE"
+
+# Rotation
+rm -rf "$YESTERDAY"
+[ -d "$TODAY" ] &amp;&amp; mv "$TODAY" "$YESTERDAY"
+mkdir -p "$TODAY"
+
+rsync -a --delete "$SRC" "$TODAY" &gt;&gt; "$LOGFILE" 2&gt;&amp;1
+if [ $? -eq 0 ]; then
+  echo "[$(date '+%F %T')] Sauvegarde rsync OK" &gt;&gt; "$LOGFILE"
+else
+  echo "[$(date '+%F %T')] ERREUR rsync" &gt;&gt; "$LOGFILE"
+fi
+
+# Crontab : tous les jours à 1h30
+# 30 1 * * * /usr/local/bin/backup_rsync.sh
+</code></pre>
+      </div>
+    </section>
+
+    <section id="reseau">
+      <h2>Réseau / Cisco</h2>
+      <p class="section-intro">Exemples classiques à connaître pour VLAN, relais DHCP, ACL et routes.</p>
+
+      <div class="script searchable" data-search="cisco vlan access switchport mode access vlan 30 interface range">
+        <div class="script-head">
+          <div>
+            <div class="script-title">Basculer des ports vers le VLAN 30</div>
+            <div class="tags"><span class="tag">Cisco</span><span class="tag">VLAN</span><span class="tag">Access</span></div>
+          </div>
+          <button class="copy-btn" data-copy-target="code-vlan30">Copier</button>
+        </div>
+<pre><code id="code-vlan30">enable
+configure terminal
+
+interface range FastEthernet0/10 - 15
+ no switchport access vlan 20
+ switchport mode access
+ switchport access vlan 30
+ spanning-tree portfast
+ description Postes_Comptabilite
+
+end
+show vlan id 30
+show running-config interface FastEthernet0/10
+copy running-config startup-config
+</code></pre>
+      </div>
+
+      <div class="script searchable" data-search="cisco trunk access 802.1q switchport trunk allowed vlan">
+        <div class="script-head">
+          <div>
+            <div class="script-title">Exemple de port trunk</div>
+            <div class="tags"><span class="tag">Cisco</span><span class="tag">Trunk</span></div>
+          </div>
+          <button class="copy-btn" data-copy-target="code-trunk">Copier</button>
+        </div>
+<pre><code id="code-trunk">interface GigabitEthernet0/1
+ switchport mode trunk
+ switchport trunk allowed vlan 10,20,30
+ switchport trunk native vlan 1
+</code></pre>
+      </div>
+
+      <div class="script searchable" data-search="cisco dhcp relay ip helper address interface vlan 30">
+        <div class="script-head">
+          <div>
+            <div class="script-title">Configurer un relais DHCP</div>
+            <div class="tags"><span class="tag">Cisco</span><span class="tag">DHCP Relay</span></div>
+          </div>
+          <button class="copy-btn" data-copy-target="code-helper">Copier</button>
+        </div>
+<pre><code id="code-helper">enable
+configure terminal
+
+interface vlan 30
+ ip helper-address 192.168.10.10
+
+exit
+show running-config interface vlan 30
+write memory
+</code></pre>
+      </div>
+
+      <div class="script searchable" data-search="cisco acl smb dns icmp deny ip any any log access-list extended">
+        <div class="script-head">
+          <div>
+            <div class="script-title">ACL étendue : autoriser SMB + DNS + ICMP</div>
+            <div class="tags"><span class="tag">Cisco</span><span class="tag">ACL</span><span class="tag">Sécurité</span></div>
+          </div>
+          <button class="copy-btn" data-copy-target="code-acl">Copier</button>
+        </div>
+<pre><code id="code-acl">enable
+configure terminal
+
+ip access-list extended ACL_VLAN30_TO_SERVER
+ permit tcp 192.168.30.0 0.0.0.255 host 192.168.30.50 eq 445
+ permit udp 192.168.30.0 0.0.0.255 host 192.168.30.50 eq 53
+ permit tcp 192.168.30.0 0.0.0.255 host 192.168.30.50 eq 53
+ permit icmp 192.168.30.0 0.0.0.255 host 192.168.30.50
+ deny ip any any log
+
+interface vlan 30
+ ip access-group ACL_VLAN30_TO_SERVER out
+
+end
+show access-lists ACL_VLAN30_TO_SERVER
+show ip interface vlan 30
+write memory
+</code></pre>
+      </div>
+
+      <div class="script searchable" data-search="cisco routage statique ip route réseau masque passerelle">
+        <div class="script-head">
+          <div>
+            <div class="script-title">Route statique</div>
+            <div class="tags"><span class="tag">Cisco</span><span class="tag">Routing</span></div>
+          </div>
+          <button class="copy-btn" data-copy-target="code-route">Copier</button>
+        </div>
+<pre><code id="code-route"># Sur R1 pour atteindre 10.0.0.0/24
+ip route 10.0.0.0 255.255.255.0 203.0.113.2
+
+# Sur R2 pour atteindre 192.168.1.0/24
+ip route 192.168.1.0 255.255.255.0 203.0.113.1
+
+# Vérification
+show ip route
+show ip route static
+</code></pre>
+      </div>
+    </section>
+
+    <section id="dhcp">
+      <h2>DHCP / Diagnostic</h2>
+      <p class="section-intro">Commandes courtes à sortir vite pendant l’épreuve.</p>
+
+      <div class="script searchable" data-search="windows ipconfig renew release all dhcp dns passerelle apipa">
+        <div class="script-head">
+          <div>
+            <div class="script-title">Renouveler et vérifier une configuration IP</div>
+            <div class="tags"><span class="tag">Windows</span><span class="tag">DHCP</span></div>
+          </div>
+          <button class="copy-btn" data-copy-target="code-ipconfig">Copier</button>
+        </div>
+<pre><code id="code-ipconfig">ipconfig /release
+ipconfig /renew
+ipconfig /all
+
+# À vérifier :
+# - Adresse IPv4 correcte
+# - Passerelle par défaut
+# - Serveurs DNS
+# - Serveur DHCP
+# - Suffixe DNS
+</code></pre>
+      </div>
+
+      <div class="script searchable" data-search="dhcp options 003 006 015 routeur dns nom domaine">
+        <div class="script-head">
+          <div>
+            <div class="script-title">Rappel des options DHCP essentielles</div>
+            <div class="tags"><span class="tag">DHCP</span><span class="tag">Mémo</span></div>
+          </div>
+          <button class="copy-btn" data-copy-target="code-dhcp-options">Copier</button>
+        </div>
+<pre><code id="code-dhcp-options">Option 003 - Routeur / Passerelle par défaut
+Exemple : 192.168.20.1
+
+Option 006 - Serveurs DNS
+Exemple : 192.168.10.10, 8.8.8.8
+
+Option 015 - Nom de domaine DNS
+Exemple : techsolutions.local
+</code></pre>
+      </div>
+    </section>
+
+    <section id="ad-admin">
+      <h2>AD Admin / Restauration</h2>
+      <p class="section-intro">Commandes d’administration avancée souvent utiles dans les corrections.</p>
+
+      <div class="script searchable" data-search="tombstone lifetime get-adobject set-adobject active directory">
+        <div class="script-head">
+          <div>
+            <div class="script-title">Vérifier ou modifier le Tombstone Lifetime</div>
+            <div class="tags"><span class="tag">PowerShell</span><span class="tag">AD</span><span class="tag">Restore</span></div>
+          </div>
+          <button class="copy-btn" data-copy-target="code-tombstone">Copier</button>
+        </div>
+<pre><code id="code-tombstone">Get-ADObject -Identity "CN=Directory Service,CN=Windows NT,CN=Services,CN=Configuration,DC=techsolutions,DC=local" -Properties tombstoneLifetime
+
+# Exemple de modification
+Set-ADObject -Identity "CN=Directory Service,CN=Windows NT,CN=Services,CN=Configuration,DC=techsolutions,DC=local" -Replace @{tombstoneLifetime=365}
+</code></pre>
+      </div>
+
+      <div class="script searchable" data-search="ntdsutil restore object authoritative restore active directory">
+        <div class="script-head">
+          <div>
+            <div class="script-title">Restauration autoritaire avec ntdsutil</div>
+            <div class="tags"><span class="tag">CMD</span><span class="tag">AD Restore</span></div>
+          </div>
+          <button class="copy-btn" data-copy-target="code-ntdsutil">Copier</button>
+        </div>
+<pre><code id="code-ntdsutil">ntdsutil
+activate instance ntds
+authoritative restore
+restore object "CN=JDupont,OU=Users,DC=techsolutions,DC=local"
+</code></pre>
+      </div>
+
+      <div class="script searchable" data-search="corbeille ad recycle bin enable-adoptionalfeature active directory">
+        <div class="script-head">
+          <div>
+            <div class="script-title">Activer la corbeille Active Directory</div>
+            <div class="tags"><span class="tag">PowerShell</span><span class="tag">Recycle Bin</span></div>
+          </div>
+          <button class="copy-btn" data-copy-target="code-recycle-bin">Copier</button>
+        </div>
+<pre><code id="code-recycle-bin">Enable-ADOptionalFeature -Identity "Recycle Bin Feature" -Scope ForestOrConfigurationSet -Target "techsolutions.local"
+</code></pre>
+      </div>
+    </section>
+
+    <section id="cheats">
+      <h2>Mini pense-bête</h2>
+      <p class="section-intro">Rappels express à mémoriser.</p>
+
+      <div class="script searchable" data-search="chmod 750 permissions linux rwx r-x">
+        <div class="script-head">
+          <div>
+            <div class="script-title">Permissions Linux</div>
+            <div class="tags"><span class="tag">Linux</span><span class="tag">chmod</span></div>
+          </div>
+          <button class="copy-btn" data-copy-target="code-chmod">Copier</button>
+        </div>
+<pre><code id="code-chmod">-rwxr-x---
+
+# Octal
+750
+
+# Signification
+# user  = rwx = 7
+# group = r-x = 5
+# other = --- = 0
+</code></pre>
+      </div>
+
+      <div class="script searchable" data-search="subnet /23 255.255.254.0 510 hôtes réseau">
+        <div class="script-head">
+          <div>
+            <div class="script-title">Rappel subnetting /23</div>
+            <div class="tags"><span class="tag">Réseau</span><span class="tag">Subnetting</span></div>
+          </div>
+          <button class="copy-btn" data-copy-target="code-subnet">Copier</button>
+        </div>
+<pre><code id="code-subnet">Réseau : 172.16.50.0/23
+Masque : 255.255.254.0
+Hôtes utilisables : 510
+Plage : 172.16.50.1 à 172.16.51.254
+Broadcast : 172.16.51.255
+</code></pre>
+      </div>
+
+      <div class="script searchable" data-search="dns dhcp différence ports 53 67 68">
+        <div class="script-head">
+          <div>
+            <div class="script-title">DNS vs DHCP</div>
+            <div class="tags"><span class="tag">Réseau</span><span class="tag">Mémo</span></div>
+          </div>
+          <button class="copy-btn" data-copy-target="code-dns-dhcp">Copier</button>
+        </div>
+<pre><code id="code-dns-dhcp">DNS  = résolution de noms → IP       | port 53 UDP/TCP
+DHCP = attribution config réseau     | ports 67/68 UDP
+
+DORA : Discover → Offer → Request → Acknowledge
+</code></pre>
+      </div>
+    </section>
+
+    <div class="footer">Page générée pour révision TSSR. Bouton “Copier” sur chaque bloc.</div>
+  </main>
+</div>
+
+<script>
+  const copyButtons = document.querySelectorAll('.copy-btn');
+  const searchInput = document.getElementById('searchInput');
+  const items = Array.from(document.querySelectorAll('.searchable, .script'));
+  const countPill = document.getElementById('countPill');
+
+  function updateCount(){
+    const visibleScripts = Array.from(document.querySelectorAll('.script')).filter(el => !el.classList.contains('hidden')).length;
+    countPill.textContent = visibleScripts + ' scripts';
+  }
+
+  copyButtons.forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const target = document.getElementById(btn.dataset.copyTarget);
+      const text = target.innerText;
+      try {
+        await navigator.clipboard.writeText(text);
+        const old = btn.textContent;
+        btn.textContent = 'Copié';
+        btn.classList.add('ok');
+        setTimeout(() => {
+          btn.textContent = old;
+          btn.classList.remove('ok');
+        }, 1200);
+      } catch (e) {
+        alert('Impossible de copier automatiquement.');
+      }
+    });
+  });
+
+  searchInput.addEventListener('input', () => {
+    const q = searchInput.value.trim().toLowerCase();
+    document.querySelectorAll('.script, .hero').forEach(el => {
+      const hay = (el.dataset.search || '') + ' ' + el.innerText.toLowerCase();
+      el.classList.toggle('hidden', q && !hay.includes(q));
+    });
+    updateCount();
+  });
+
+  document.getElementById('expandAll').addEventListener('click', () => {
+    document.querySelectorAll('pre').forEach(pre => pre.style.display = 'block');
+  });
+  document.getElementById('collapseAll').addEventListener('click', () => {
+    document.querySelectorAll('pre').forEach(pre => pre.style.display = 'none');
+  });
+
+  updateCount();
+</script>
+</body>
+</html>
